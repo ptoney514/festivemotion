@@ -1,15 +1,19 @@
 import "dotenv/config";
 import { and, eq, notInArray } from "drizzle-orm";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import { catalogSeed } from "../lib/catalog-seed";
-import { getDb } from "../lib/db";
-import { optionGroups, options, products } from "../lib/schema";
+import * as schema from "../lib/schema";
+
+const { optionGroups, options, products } = schema;
 
 async function main() {
-  const db = getDb();
-
-  if (!db) {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
     throw new Error("DATABASE_URL is required before seeding.");
   }
+  const sql = neon(url);
+  const db = drizzle(sql, { schema });
 
   for (const product of catalogSeed) {
     const [upsertedProduct] = await db

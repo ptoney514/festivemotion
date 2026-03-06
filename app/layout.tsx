@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
+import { CartProvider } from "@/lib/cart-context";
+import { CartDrawer } from "@/components/cart-drawer";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,7 +31,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${oswald.variable} antialiased`}>
-        {children}
+        <CartProvider>
+          {children}
+          <CartDrawer />
+        </CartProvider>
       </body>
     </html>
   );

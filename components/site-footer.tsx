@@ -6,6 +6,7 @@ const footerColumns = [
     title: "Shop",
     items: [
       { href: "/products", label: "All Products" },
+      { href: "/add-ons", label: "Add-ons & Accessories" },
       { href: "/products/skulltronix-skull", label: "SkullTronix Skull" },
       { href: "/products/skulltronix-dancing-pumpkin", label: "Dancing Pumpkin" },
     ],

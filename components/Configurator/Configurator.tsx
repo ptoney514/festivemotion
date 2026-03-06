@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useDeferredValue, useEffect, useState, useTransition } from "react";
 import { formatCurrency } from "@/lib/format";
 import { buildDefaultSelections, calculatePrice, getConfiguredImage } from "@/lib/pricing";
+import { useCart } from "@/lib/cart-context";
 import type { CatalogProduct, PricedConfiguration, SelectionMap } from "@/lib/types";
 import { OptionGroup } from "@/components/Configurator/OptionGroup";
 import { SummaryCard } from "@/components/Configurator/SummaryCard";
@@ -29,11 +30,11 @@ export function Configurator({ product }: { product: CatalogProduct }) {
   const [serverPrice, setServerPrice] = useState<PricedConfiguration>(
     calculatePrice(product, initialSelections),
   );
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const { addConfiguredItem, openCart } = useCart();
+  const [addedFeedback, setAddedFeedback] = useState(false);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isPricingSyncing, startPricingTransition] = useTransition();
-  const [isCheckingOut, startCheckoutTransition] = useTransition();
 
   const optimisticPrice = calculatePrice(product, selections);
   const displayPrice = serverPrice ?? optimisticPrice;
@@ -114,36 +115,19 @@ export function Configurator({ product }: { product: CatalogProduct }) {
     });
   }
 
-  function handleCheckout() {
-    setCheckoutError(null);
-
-    startCheckoutTransition(() => {
-      void (async () => {
-        try {
-          const response = await fetch("/api/checkout", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              productSlug: product.slug,
-              selections,
-            }),
-          });
-
-          const payload = (await response.json()) as { error?: string; url?: string };
-
-          if (!response.ok || !payload.url) {
-            setCheckoutError(payload.error ?? "Checkout could not be started.");
-            return;
-          }
-
-          window.location.assign(payload.url);
-        } catch {
-          setCheckoutError("Checkout could not be started.");
-        }
-      })();
+  function handleAddToCart() {
+    addConfiguredItem({
+      productSlug: product.slug,
+      productName: product.name,
+      productImageUrl: product.imageUrl,
+      selections,
+      lineItems: displayPrice.lineItems,
+      selectedOptions: displayPrice.selectedOptions,
+      totalCents: displayPrice.totalCents,
     });
+    openCart();
+    setAddedFeedback(true);
+    setTimeout(() => setAddedFeedback(false), 1500);
   }
 
   return (
@@ -226,11 +210,10 @@ export function Configurator({ product }: { product: CatalogProduct }) {
 
             <div className="xl:hidden">
               <SummaryCard
-                actionLabel="Continue to checkout"
-                busy={isCheckingOut}
+                actionLabel={addedFeedback ? "Added!" : "Add to Cart"}
+                busy={addedFeedback}
                 disabled={isPricingSyncing}
-                errorMessage={checkoutError}
-                onAction={handleCheckout}
+                onAction={handleAddToCart}
                 price={displayPrice}
               />
             </div>
@@ -262,11 +245,10 @@ export function Configurator({ product }: { product: CatalogProduct }) {
 
           <aside className="hidden xl:block xl:sticky xl:top-28 xl:self-start">
             <SummaryCard
-              actionLabel="Continue to checkout"
-              busy={isCheckingOut}
+              actionLabel={addedFeedback ? "Added!" : "Add to Cart"}
+              busy={addedFeedback}
               disabled={isPricingSyncing}
-              errorMessage={checkoutError}
-              onAction={handleCheckout}
+              onAction={handleAddToCart}
               price={displayPrice}
             />
           </aside>
@@ -365,11 +347,11 @@ export function Configurator({ product }: { product: CatalogProduct }) {
           </button>
           <button
             type="button"
-            onClick={handleCheckout}
-            disabled={isCheckingOut || isPricingSyncing || !displayPrice.valid}
+            onClick={handleAddToCart}
+            disabled={addedFeedback || isPricingSyncing || !displayPrice.valid}
             className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/30 disabled:text-white/60"
           >
-            {isCheckingOut ? "Redirecting…" : "Checkout"}
+            {addedFeedback ? "Added!" : "Add to Cart"}
           </button>
         </div>
       </div>
@@ -387,11 +369,10 @@ export function Configurator({ product }: { product: CatalogProduct }) {
               </button>
             </div>
             <SummaryCard
-              actionLabel="Continue to checkout"
-              busy={isCheckingOut}
+              actionLabel={addedFeedback ? "Added!" : "Add to Cart"}
+              busy={addedFeedback}
               disabled={isPricingSyncing}
-              errorMessage={checkoutError}
-              onAction={handleCheckout}
+              onAction={handleAddToCart}
               price={displayPrice}
             />
           </div>

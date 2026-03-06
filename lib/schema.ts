@@ -102,7 +102,6 @@ export const orders = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     configurationId: uuid("configuration_id")
-      .notNull()
       .references(() => configurations.id, { onDelete: "restrict" }),
     stripeSessionId: text("stripe_session_id"),
     stripePaymentIntentId: text("stripe_payment_intent_id"),
@@ -117,6 +116,24 @@ export const orders = pgTable(
     ),
   }),
 );
+
+export const orderItems = pgTable("order_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  configurationId: uuid("configuration_id").references(() => configurations.id, {
+    onDelete: "restrict",
+  }),
+  itemType: text("item_type").notNull(), // "configured" | "accessory"
+  label: text("label").notNull(),
+  slug: text("slug").notNull(),
+  unitPriceCents: integer("unit_price_cents").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  totalCents: integer("total_cents").notNull(),
+  metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const orderEvents = pgTable("order_events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -161,7 +178,19 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.configurationId],
     references: [configurations.id],
   }),
+  items: many(orderItems),
   events: many(orderEvents),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  configuration: one(configurations, {
+    fields: [orderItems.configurationId],
+    references: [configurations.id],
+  }),
 }));
 
 export const orderEventsRelations = relations(orderEvents, ({ one }) => ({

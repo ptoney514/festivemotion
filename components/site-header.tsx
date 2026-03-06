@@ -1,8 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { CartButton } from "@/components/cart-button";
 
 const navLinks = [
   { href: "/products", label: "Products" },
+  { href: "/add-ons", label: "Add-ons" },
   { href: "/", label: "Why FestiveMotion" },
   { href: "mailto:info@festivemotion.com", label: "Contact" },
 ];
@@ -54,6 +58,7 @@ export function SiteHeader() {
             >
               +1 402 253 1991
             </a>
+            <CartButton />
             <Link
               href="/products"
               className="inline-flex items-center justify-center rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90 sm:px-4"

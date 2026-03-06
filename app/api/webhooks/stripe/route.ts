@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { sendOrderEmail } from "@/lib/email";
 import { getDb } from "@/lib/db";
-import { getOrderById, getOrderBySessionId, getConfigurationSnapshot, recordOrderEvent } from "@/lib/orders";
+import { getOrderById, getOrderBySessionId, getOrderItemsByOrderId, getConfigurationSnapshot, recordOrderEvent } from "@/lib/orders";
 import { orders } from "@/lib/schema";
 import { getStripe } from "@/lib/stripe";
 
@@ -63,11 +63,17 @@ export async function POST(request: Request) {
 
     if (nextStatus === "paid") {
       const snapshot = getConfigurationSnapshot(orderRecord);
+      const items = await getOrderItemsByOrderId(orderRecord.order.id);
       await sendOrderEmail({
         orderId: orderRecord.order.id,
         amountTotalCents,
         customerEmail: session.customer_details?.email ?? null,
-        productName: snapshot?.productName ?? orderRecord.product.name,
+        productName: snapshot?.productName ?? orderRecord.product?.name ?? "FestiveMotion order",
+        items: items.map((i) => ({
+          label: i.label,
+          quantity: i.quantity,
+          totalCents: i.totalCents,
+        })),
       });
     }
   } else if (event.type === "payment_intent.succeeded") {
