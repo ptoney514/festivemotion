@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FestiveMotion Storefront MVP
 
-## Getting Started
+FestiveMotion is a modern Next.js storefront for SkullTronix and related animatronic products. It keeps the storytelling and product configuration ideas from the current WooCommerce site, but restructures them into an Apple-style buying flow with server-authoritative pricing, Neon-backed catalog data, and hosted Stripe Checkout.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router + TypeScript
+- Tailwind CSS
+- Neon Postgres
+- Drizzle ORM + generated SQL migrations
+- Stripe Checkout + webhook reconciliation
+- Vitest for pricing tests
+
+## Current MVP Scope
+
+- `/` marketing landing page
+- `/products` catalog listing
+- `/products/[slug]` configurable product detail pages
+- `POST /api/price` for authoritative pricing validation
+- `POST /api/checkout` for Stripe Checkout session creation
+- `POST /api/webhooks/stripe` for payment reconciliation
+- `/success` and `/cancel` for post-checkout states
+
+The UI can browse a local fallback catalog when `DATABASE_URL` is missing, but checkout requires a seeded Neon database and Stripe credentials.
+
+## Local Setup
+
+1. Use a current Node LTS release.
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Copy the example env file and fill in values:
+
+```bash
+cp .env.example .env.local
+```
+
+4. Generate and run migrations:
+
+```bash
+npm run db:migrate
+```
+
+5. Seed the catalog:
+
+```bash
+npm run db:seed
+```
+
+6. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `DATABASE_URL`: Neon Postgres connection string
+- `STRIPE_SECRET_KEY`: Stripe secret API key
+- `STRIPE_WEBHOOK_SECRET`: Stripe CLI or dashboard webhook signing secret
+- `NEXT_PUBLIC_SITE_URL`: app base URL, for example `http://localhost:3000`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database Workflow
 
-## Learn More
+Generate a new migration after schema changes:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run db:generate
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Apply migrations:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run db:migrate
+```
 
-## Deploy on Vercel
+Seed or reseed the catalog:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run db:seed
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Test and Verification
+
+Run lint:
+
+```bash
+npm run lint
+```
+
+Run unit tests:
+
+```bash
+npm run test
+```
+
+Run a production build:
+
+```bash
+npm run build
+```
+
+## Stripe Local Testing
+
+1. Start the Next app with `npm run dev`.
+2. Start Stripe webhook forwarding:
+
+```bash
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+3. Put the reported webhook secret into `STRIPE_WEBHOOK_SECRET`.
+4. Seed the database and open any product page under `/products`.
+5. Configure a build and use Stripe test card `4242 4242 4242 4242`.
+6. After payment, confirm:
+   - `/success?session_id=...` resolves
+   - `configurations` contains the snapshot
+   - `orders` contains the Stripe ids and paid status
+   - `order_events` contains the webhook audit trail
+
+## Deployment Notes
+
+- Deploy to Vercel with the same environment variables from `.env.example`
+- Set `NEXT_PUBLIC_SITE_URL` to the production domain
+- Point the Stripe webhook endpoint to `/api/webhooks/stripe`
+- Seed production Neon after running migrations
+
+## Project Layout
+
+- `app/`: pages and route handlers
+- `components/Configurator/`: product configurator UI
+- `lib/`: schema, DB access, pricing, catalog, orders, Stripe, validators
+- `scripts/seed.ts`: idempotent catalog seed
+- `drizzle/`: generated SQL migrations
