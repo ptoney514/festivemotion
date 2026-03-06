@@ -33,3 +33,13 @@ export const cartCheckoutRequestSchema = z.object({
 });
 
 export type CartCheckoutRequest = z.infer<typeof cartCheckoutRequestSchema>;
+
+// --- Contact form schema ---
+
+export const contactFormSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+  email: z.string().email("Please enter a valid email address"),
+  subject: z.enum(["general", "order-support", "custom-project", "technical-support"]).default("general"),
+  message: z.string().min(10, "Message must be at least 10 characters").max(5000),
+});
+export type ContactFormData = z.infer<typeof contactFormSchema>;

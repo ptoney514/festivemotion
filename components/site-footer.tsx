@@ -14,7 +14,7 @@ const footerColumns = [
   {
     title: "Support",
     items: [
-      { href: "mailto:info@festivemotion.com", label: "Email Support" },
+      { href: "/contact", label: "Email Support" },
       { href: "tel:4022531991", label: "Call Sales" },
       { href: "/products", label: "Configure a Build" },
     ],
@@ -52,14 +52,13 @@ export function SiteFooter() {
     <footer className="border-t border-white/10 bg-[#090909]">
       <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8">
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-full bg-[#ff5a1f]">
-              <Image src="/figma/footer-logo-mark.svg" alt="" width={18} height={18} />
-            </span>
-            <span className="font-display text-2xl font-bold tracking-[-0.05em] text-white">
-              FESTIVE<span className="text-[#ff5a1f]">MOTION</span>
-            </span>
-          </div>
+          <Image
+            src="/images/FestiveMotion_Logo_COLOR_TAG.avif"
+            alt="FestiveMotion — Bringing Holidays to Life"
+            width={250}
+            height={188}
+            className="h-[48px] w-auto"
+          />
           <p className="max-w-xl text-sm leading-7 text-white/65">
             FestiveMotion builds commercial animatronics for haunted attractions,
             seasonal retail, immersive installations, and trade show environments.

@@ -41,6 +41,59 @@ function buildPlainText(args: SendOrderEmailArgs): string {
   return lines.join("\n");
 }
 
+type SendContactEmailArgs = {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+};
+
+const SUBJECT_LABELS: Record<string, string> = {
+  general: "General Inquiry",
+  "order-support": "Order Support",
+  "custom-project": "Custom Project",
+  "technical-support": "Technical Support",
+};
+
+export async function sendContactEmail(args: SendContactEmailArgs) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const notifyEmail = process.env.ORDER_NOTIFICATION_EMAIL;
+
+  if (!apiKey || !notifyEmail) {
+    console.info("sendContactEmail (no Resend key, logging to console):", args);
+    return;
+  }
+
+  const subjectLabel = SUBJECT_LABELS[args.subject] ?? args.subject;
+
+  try {
+    const { Resend } = await import("resend");
+    const resend = new Resend(apiKey);
+
+    await resend.emails.send({
+      from: "FestiveMotion <orders@festivemotion.com>",
+      to: notifyEmail,
+      replyTo: args.email,
+      subject: `Contact: ${subjectLabel} from ${args.name}`,
+      text: [
+        `Contact Form Submission`,
+        ``,
+        `Name: ${args.name}`,
+        `Email: ${args.email}`,
+        `Subject: ${subjectLabel}`,
+        ``,
+        `Message:`,
+        args.message,
+        ``,
+        `---`,
+        `Submitted via the FestiveMotion contact form.`,
+      ].join("\n"),
+    });
+  } catch (error) {
+    console.error("Failed to send contact email via Resend:", error);
+  }
+}
+
 export async function sendOrderEmail(args: SendOrderEmailArgs) {
   const apiKey = process.env.RESEND_API_KEY;
   const notifyEmail = process.env.ORDER_NOTIFICATION_EMAIL;

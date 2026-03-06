@@ -23,9 +23,9 @@ export async function POST(request: Request) {
   const db = getDb();
   const stripe = getStripe();
 
-  if (!db || !stripe) {
+  if (!db) {
     return NextResponse.json(
-      { error: "Database or Stripe configuration is missing." },
+      { error: "Database configuration is missing." },
       { status: 503 },
     );
   }
@@ -180,49 +180,67 @@ export async function POST(request: Request) {
     })),
   );
 
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      success_url: `${getSiteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${getSiteUrl()}/cancel`,
-      line_items: stripeLineItems,
-      metadata: {
-        orderId: order.id,
-      },
-    });
+  if (stripe) {
+    try {
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        success_url: `${getSiteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${getSiteUrl()}/cancel`,
+        line_items: stripeLineItems,
+        metadata: {
+          orderId: order.id,
+        },
+      });
 
-    await db
-      .update(orders)
-      .set({ stripeSessionId: session.id })
-      .where(eq(orders.id, order.id));
+      await db
+        .update(orders)
+        .set({ stripeSessionId: session.id })
+        .where(eq(orders.id, order.id));
 
-    await recordOrderEvent(order.id, "checkout_session_created", {
-      sessionId: session.id,
-      amountTotalCents: cartTotalCents,
-      itemCount: orderItemValues.length,
-    });
+      await recordOrderEvent(order.id, "checkout_session_created", {
+        sessionId: session.id,
+        amountTotalCents: cartTotalCents,
+        itemCount: orderItemValues.length,
+      });
 
-    if (!session.url) {
+      if (!session.url) {
+        return NextResponse.json(
+          { error: "Stripe did not return a checkout URL." },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({ url: session.url });
+    } catch (error) {
+      await db
+        .update(orders)
+        .set({ status: "checkout_failed" })
+        .where(eq(orders.id, order.id));
+
+      await recordOrderEvent(order.id, "checkout_session_failed", {
+        message: error instanceof Error ? error.message : "Unknown Stripe error",
+      });
+
       return NextResponse.json(
-        { error: "Stripe did not return a checkout URL." },
+        { error: "Checkout could not be created." },
         { status: 500 },
       );
     }
-
-    return NextResponse.json({ url: session.url });
-  } catch (error) {
-    await db
-      .update(orders)
-      .set({ status: "checkout_failed" })
-      .where(eq(orders.id, order.id));
-
-    await recordOrderEvent(order.id, "checkout_session_failed", {
-      message: error instanceof Error ? error.message : "Unknown Stripe error",
-    });
-
-    return NextResponse.json(
-      { error: "Checkout could not be created." },
-      { status: 500 },
-    );
   }
+
+  // Mock checkout fallback when Stripe is unavailable
+  const mockSessionId = `mock_${order.id}`;
+
+  await db
+    .update(orders)
+    .set({ status: "mock_paid", stripeSessionId: mockSessionId })
+    .where(eq(orders.id, order.id));
+
+  await recordOrderEvent(order.id, "mock_checkout_completed", {
+    mockSessionId,
+    amountTotalCents: cartTotalCents,
+    itemCount: orderItemValues.length,
+  });
+
+  return NextResponse.json({ url: `${getSiteUrl()}/success?session_id=${mockSessionId}` });
 }

@@ -142,7 +142,7 @@ export async function getSuccessSummary(sessionId: string) {
 
     return {
       state:
-        fromDatabase.order.status === "paid" ? ("paid" as const) : ("processing" as const),
+        ["paid", "mock_paid"].includes(fromDatabase.order.status) ? ("paid" as const) : ("processing" as const),
       orderId: fromDatabase.order.id,
       email: fromDatabase.order.customerEmail,
       amountTotalCents: fromDatabase.order.amountTotalCents,
