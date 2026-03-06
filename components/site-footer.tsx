@@ -22,7 +22,7 @@ const footerColumns = [
   {
     title: "Company",
     items: [
-      { href: "/", label: "About FestiveMotion" },
+      { href: "/why-festivemotion", label: "About FestiveMotion" },
       { href: "https://festivemotion.com", label: "Current Site" },
       { href: "https://www.apple.com/shop/buy-mac/macbook-air", label: "UX Reference" },
     ],

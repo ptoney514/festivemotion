@@ -7,7 +7,7 @@ import { CartButton } from "@/components/cart-button";
 const navLinks = [
   { href: "/products", label: "Products" },
   { href: "/add-ons", label: "Add-ons" },
-  { href: "/", label: "Why FestiveMotion" },
+  { href: "/why-festivemotion", label: "Why FestiveMotion" },
   { href: "/contact", label: "Contact" },
 ];
 
