@@ -37,7 +37,10 @@ export type ProductMetadata = {
   category?: string;
   gallery: CatalogMedia[];
   heroEyebrow?: string;
+  heroHighlights?: string[];
+  heroImageUrl?: string;
   heroSummary?: string;
+  heroTagline?: string;
   inTheBox?: string[];
   leadTime?: string;
   note?: string;

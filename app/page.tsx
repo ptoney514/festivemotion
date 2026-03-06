@@ -6,12 +6,6 @@ import { SiteHeader } from "@/components/site-header";
 import { formatCurrency } from "@/lib/format";
 import { getCatalogProducts } from "@/lib/catalog";
 
-const sellingPoints = [
-  "Mobile-friendly browsing and checkout",
-  "Apple-style configuration flow",
-  "Server-authoritative pricing with Stripe checkout",
-];
-
 const verticals = [
   {
     title: "Haunted Attractions",
@@ -29,48 +23,71 @@ const verticals = [
 
 export default async function HomePage() {
   const products = await getCatalogProducts();
-  const featuredProducts = products.slice(0, 3);
+  const heroProduct =
+    products.find((product) => product.slug === "skulltronix-dancing-pumpkin") ?? products[0];
+  const featuredProducts = products
+    .filter((product) => product.slug !== heroProduct?.slug)
+    .slice(0, 3);
+  const heroHighlights = heroProduct?.metadata.heroHighlights ?? [
+    "4 routines included",
+    "Internal multi-color glow",
+    "Trade show and haunt ready",
+  ];
+  const heroImage =
+    heroProduct?.metadata.heroImageUrl ??
+    heroProduct?.imageUrl ??
+    "/products/dancing-pumpkin-hero.webp";
+  const heroSummary = heroProduct?.metadata.heroSummary ?? heroProduct?.description ?? "";
+  const heroTagline = heroProduct?.metadata.heroTagline ?? "Built to draw a crowd.";
 
   return (
     <>
       <SiteHeader />
       <main>
-        <section className="overflow-hidden border-b border-white/10">
-          <div className="mx-auto grid max-w-[1280px] gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-24">
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.28),_transparent_58%)]" />
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(255,120,60,0.16),_transparent_60%)] blur-3xl" />
+          <div className="mx-auto grid max-w-[1280px] items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[0.84fr_1.16fr] lg:gap-12 lg:px-8 lg:py-20">
             <div className="relative z-10">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ffb089]">
-                Modern storefront rebuild
+                {heroProduct?.metadata.heroEyebrow ?? "Featured Animatronic"}
               </p>
-              <h1 className="mt-5 max-w-[12ch] font-display text-5xl font-semibold tracking-[-0.06em] text-white sm:text-6xl lg:text-7xl">
-                Sell animatronics with more clarity and less friction.
+              <h1 className="mt-5 max-w-[11ch] font-display text-5xl font-semibold tracking-[-0.06em] text-white sm:text-6xl lg:text-7xl">
+                {heroProduct?.name ?? "SkullTronix Dancing Pumpkin"}
               </h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-white/65">
-                FestiveMotion is becoming a marketing and commerce experience built for
-                product storytelling, clean mobile browsing, and server-validated custom
-                builds. The goal is simple: make it easier for buyers to understand,
-                configure, and order complex props.
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[#ffd7c5] sm:text-3xl">
+                {heroTagline}
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <Link
-                  href="/products"
-                  className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90"
+                  href="/products/skulltronix-dancing-pumpkin"
+                  className="inline-flex items-center justify-center rounded-full bg-[#ff5a1f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#ff6d39]"
                 >
-                  Shop / Configure
+                  Build Your Pumpkin
                 </Link>
-                <a
-                  href="mailto:info@festivemotion.com"
+                <Link
+                  href="/products/skulltronix-dancing-pumpkin"
                   className="inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.04]"
                 >
-                  Book a Demo
-                </a>
+                  View Details
+                </Link>
               </div>
 
-              <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                {sellingPoints.map((item) => (
+              <p className="mt-5 text-sm text-white/60">
+                Starting at{" "}
+                <span className="font-semibold text-white">
+                  {formatCurrency(heroProduct?.basePriceCents ?? 149500)}
+                </span>
+              </p>
+
+              <p className="mt-6 max-w-xl text-base leading-8 text-white/68">{heroSummary}</p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                {heroHighlights.map((item) => (
                   <div
                     key={item}
-                    className="rounded-[24px] border border-white/10 bg-white/[0.03] px-4 py-5 text-sm text-white/70"
+                    className="rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/72 backdrop-blur-sm"
                   >
                     {item}
                   </div>
@@ -79,46 +96,17 @@ export default async function HomePage() {
             </div>
 
             <div className="relative">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.22),_transparent_42%)] blur-3xl" />
-              <div className="relative overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(0,0,0,0.12))] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.45)]">
-                <div className="relative aspect-[4/5] overflow-hidden rounded-[28px]">
+              <div className="absolute inset-x-[12%] bottom-6 h-24 rounded-full bg-[#ff6d39]/30 blur-3xl" />
+              <div className="relative mx-auto max-w-[720px] overflow-hidden rounded-[40px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(8,8,8,0.16))] p-4 shadow-[0_35px_100px_rgba(0,0,0,0.52)]">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[32px] bg-[radial-gradient(circle_at_top,_rgba(255,119,54,0.14),_transparent_48%),linear-gradient(180deg,#081119,#040404)]">
                   <Image
-                    src="/figma/hero-pumpkin.png"
-                    alt="FestiveMotion hero image showing a premium animatronic pumpkin."
+                    src={heroImage}
+                    alt="SkullTronix Dancing Pumpkin animatronic with glowing eyes and carved grin."
                     fill
                     priority
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 48vw"
+                    className="object-cover object-center"
+                    sizes="(max-width: 1024px) 100vw, 56vw"
                   />
-                </div>
-                <div className="grid gap-4 p-4 sm:grid-cols-2">
-                  <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-                      Featured Build
-                    </p>
-                    <h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.04em] text-white">
-                      Dancing Pumpkin
-                    </h2>
-                    <p className="mt-3 text-sm leading-7 text-white/60">
-                      An Apple-like product detail page with configurable control and setup
-                      options.
-                    </p>
-                    <p className="mt-4 text-lg font-semibold text-white">
-                      {formatCurrency(149500)}
-                    </p>
-                  </div>
-                  <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-                      Commerce Stack
-                    </p>
-                    <h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.04em] text-white">
-                      Neon + Stripe
-                    </h2>
-                    <p className="mt-3 text-sm leading-7 text-white/60">
-                      Catalogs and configuration snapshots live in Postgres, while final
-                      totals are charged through hosted Stripe Checkout.
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -132,7 +120,7 @@ export default async function HomePage() {
                 Featured catalog
               </p>
               <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em] text-white">
-                Start from the products customers already know.
+                Keep browsing once the pumpkin hooks them.
               </h2>
             </div>
             <Link
@@ -173,18 +161,18 @@ export default async function HomePage() {
           <div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-4 py-16 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-                MVP direction
+                The new storefront direction
               </p>
               <h2 className="mt-3 max-w-[14ch] font-display text-4xl font-semibold tracking-[-0.05em] text-white">
-                Browse, configure, and check out without sales friction.
+                Product-first storytelling with a cleaner path to checkout.
               </h2>
             </div>
             <div className="max-w-xl">
               <p className="text-sm leading-7 text-white/65">
-                The build now has the right foundation for a real storefront: typed seed
-                data, a Neon-ready schema, server-authoritative pricing, and Stripe
-                checkout entry points. The next lift after MVP is replacing hard-coded
-                seed content with a richer operational catalog.
+                FestiveMotion now opens on a buyer-facing hero instead of internal rebuild
+                language, then moves into guided browsing, Apple-style configuration, and
+                server-validated checkout. The foundation is in place for richer product
+                storytelling without losing pricing control.
               </p>
               <div className="mt-6">
                 <Link

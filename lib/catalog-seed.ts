@@ -793,17 +793,24 @@ export const catalogSeed: CatalogProduct[] = [
     slug: "skulltronix-dancing-pumpkin",
     name: "SkullTronix Dancing Pumpkin",
     shortDescription:
-      "A trade show-friendly animatronic pumpkin with a cleaner Apple-style build path and optional show-control upgrades.",
+      "A high-energy animatronic pumpkin with internal glow effects, articulated dancing movement, and four included routines.",
     description:
-      "The Dancing Pumpkin uses the Figma-led PDP structure as a polished modern configurator while keeping the live product and price point from the current store. It is the clearest example of where the rebuild is headed.",
+      "The SkullTronix Dancing Pumpkin is built to stop traffic at haunted attractions, party installs, and trade show booths. It pairs a playful dancing motion with internal multi-color lighting and an easy-to-demo setup that can still scale up with show-control accessories.",
     basePriceCents: 149500,
-    imageUrl: "/figma/pdp/pumpkin-main.png",
+    imageUrl: "/products/dancing-pumpkin-hero.webp",
     active: true,
     metadata: {
       category: "Magic & Novelties",
-      heroEyebrow: "Trade Show Favorite",
+      heroEyebrow: "Featured Animatronic",
+      heroHighlights: [
+        "4 routines included",
+        "Internal multi-color glow",
+        "Trade show and haunt ready",
+      ],
+      heroImageUrl: "/products/dancing-pumpkin-hero.webp",
       heroSummary:
-        "Configure the motion controller, add extra themed audio, and choose the setup extras you need for transport or outdoor installs.",
+        "A playful, high-energy animatronic with articulated movement, glowing personality, and a compact setup that is easy to demo. Every pumpkin ships with a black wood base, speaker, power control module, and four included routines.",
+      heroTagline: "Born to boogie.",
       gallery: [
         {
           type: "image",
