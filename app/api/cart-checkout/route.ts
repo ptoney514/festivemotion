@@ -20,6 +20,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
   }
 
+  const { customerEmail, customerName, shippingAddress } = parsed.data;
+
   const db = getDb();
   const stripe = getStripe();
 
@@ -163,6 +165,7 @@ export async function POST(request: Request) {
       configurationId: null,
       status: "pending",
       amountTotalCents: cartTotalCents,
+      customerEmail: customerEmail ?? null,
     })
     .returning();
 
@@ -187,8 +190,11 @@ export async function POST(request: Request) {
         success_url: `${getSiteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${getSiteUrl()}/cancel`,
         line_items: stripeLineItems,
+        customer_email: customerEmail,
         metadata: {
           orderId: order.id,
+          customerName: customerName ?? "",
+          shippingAddress: shippingAddress ? JSON.stringify(shippingAddress) : "",
         },
       });
 

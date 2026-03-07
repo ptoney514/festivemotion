@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { getCartItemTotal } from "@/lib/cart-types";
 import type { CartItem } from "@/lib/cart-types";
@@ -80,41 +80,11 @@ function AccessoryItemRow({
 
 export function CartDrawer() {
   const { items, totalCents, isCartOpen, closeCart, removeItem, updateQuantity, clearCart } = useCart();
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [isCheckingOut, startCheckout] = useTransition();
+  const router = useRouter();
 
   function handleCheckout() {
-    setCheckoutError(null);
-
-    startCheckout(() => {
-      void (async () => {
-        try {
-          const payload = items.map((item) => {
-            if (item.kind === "configured") {
-              return { kind: "configured" as const, productSlug: item.productSlug, selections: item.selections };
-            }
-            return { kind: "accessory" as const, accessorySlug: item.accessorySlug, quantity: item.quantity };
-          });
-
-          const res = await fetch("/api/cart-checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: payload }),
-          });
-
-          const data = (await res.json()) as { url?: string; error?: string };
-
-          if (!res.ok || !data.url) {
-            setCheckoutError(data.error ?? "Checkout could not be started.");
-            return;
-          }
-
-          window.location.assign(data.url);
-        } catch {
-          setCheckoutError("Checkout could not be started.");
-        }
-      })();
-    });
+    closeCart();
+    router.push("/checkout");
   }
 
   return (
@@ -182,11 +152,6 @@ export function CartDrawer() {
         {/* Footer */}
         {items.length > 0 ? (
           <div className="border-t border-white/10 px-5 py-4">
-            {checkoutError ? (
-              <div className="mb-3 rounded-xl border border-[#ff5a1f]/40 bg-[#ff5a1f]/10 px-4 py-2.5 text-sm text-[#ffd4c4]">
-                {checkoutError}
-              </div>
-            ) : null}
             <div className="mb-4 flex items-center justify-between">
               <span className="text-sm text-white/55">Total</span>
               <span className="text-xl font-semibold text-white">{formatCurrency(totalCents)}</span>
@@ -194,10 +159,9 @@ export function CartDrawer() {
             <button
               type="button"
               onClick={handleCheckout}
-              disabled={isCheckingOut}
-              className="inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/30 disabled:text-white/60"
+              className="inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90"
             >
-              {isCheckingOut ? "Redirecting..." : "Proceed to Checkout"}
+              Proceed to Checkout
             </button>
             <button
               type="button"
