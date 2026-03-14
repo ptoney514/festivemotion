@@ -25,6 +25,13 @@ export function getStripe() {
   return globalThis.__festiveMotionStripe;
 }
 
-export function getSiteUrl() {
+export function getSiteUrl(request?: Request) {
+  if (request) {
+    const host = request.headers.get("host");
+    if (host) {
+      const proto = request.headers.get("x-forwarded-proto") ?? "http";
+      return `${proto}://${host}`;
+    }
+  }
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }

@@ -28,7 +28,7 @@ export function CartButton() {
         <path d="M16 10a4 4 0 01-8 0" />
       </svg>
       {hydrated && itemCount > 0 ? (
-        <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-[#ff5a1f] text-[10px] font-bold text-white">
+        <span data-testid="cart-badge" className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-[#ff5a1f] text-[10px] font-bold text-white">
           {itemCount > 9 ? "9+" : itemCount}
         </span>
       ) : null}

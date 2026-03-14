@@ -207,8 +207,8 @@ export async function POST(request: Request) {
     try {
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
-        success_url: `${getSiteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${getSiteUrl()}/cancel`,
+        success_url: `${getSiteUrl(request)}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${getSiteUrl(request)}/cancel`,
         line_items: stripeLineItems,
         ...(stripeCustomerId
           ? { customer: stripeCustomerId }
@@ -271,5 +271,5 @@ export async function POST(request: Request) {
     itemCount: orderItemValues.length,
   });
 
-  return NextResponse.json({ url: `${getSiteUrl()}/success?session_id=${mockSessionId}` });
+  return NextResponse.json({ url: `${getSiteUrl(request)}/success?session_id=${mockSessionId}` });
 }
