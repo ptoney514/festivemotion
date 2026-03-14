@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getAccessoryBySlug } from "@/lib/accessories";
 import { getCatalogProductBySlug } from "@/lib/catalog";
 import { getDb } from "@/lib/db";
@@ -175,10 +176,15 @@ export async function POST(request: Request) {
     }
   }
 
+  // Link order to authenticated user if available
+  const session = await auth();
+  const userId = session?.user?.id ?? null;
+
   const [order] = await db
     .insert(orders)
     .values({
       configurationId: null,
+      userId,
       status: "pending",
       amountTotalCents: cartTotalCents,
       customerEmail,

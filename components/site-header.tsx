@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CartButton } from "@/components/cart-button";
+import { UserButton } from "@/components/user-button";
 
 const navLinks = [
   { href: "/products", label: "Products" },
@@ -55,6 +56,7 @@ export function SiteHeader() {
               +1 402 253 1991
             </a>
             <CartButton />
+            <UserButton />
           </div>
         </div>
       </header>

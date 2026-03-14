@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
@@ -134,6 +135,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 export function CheckoutForm() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { items, totalCents, hydrated, openCart } = useCart();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -150,6 +152,18 @@ export function CheckoutForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+
+  // Pre-fill from session
+  useEffect(() => {
+    if (session?.user) {
+      const user = session.user;
+      setFields((prev) => ({
+        ...prev,
+        name: prev.name || user.name || "",
+        email: prev.email || user.email || "",
+      }));
+    }
+  }, [session]);
 
   // Redirect if empty cart
   useEffect(() => {
