@@ -32,10 +32,18 @@ export type ProductPricingMetadata = {
   variants?: ProductVariantRule[];
 };
 
+export type ProductCapability = {
+  included: boolean;
+  label: string;
+};
+
 export type ProductMetadata = {
   audience?: string;
+  capabilities?: ProductCapability[];
   category?: string;
+  family?: string;
   gallery: CatalogMedia[];
+  heroCtaLabel?: string;
   heroEyebrow?: string;
   heroHighlights?: string[];
   heroImageUrl?: string;
@@ -50,6 +58,8 @@ export type ProductMetadata = {
   specs?: string[];
   supportItems?: CatalogSupportItem[];
   featureCards?: CatalogFeatureCard[];
+  tier?: string;
+  tierRank?: number;
 };
 
 export type OptionMetadata = {

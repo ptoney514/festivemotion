@@ -4,7 +4,11 @@ import { Configurator } from "@/components/Configurator/Configurator";
 import { ProductCard } from "@/components/product-card";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { getCatalogProductBySlug, getRelatedProducts } from "@/lib/catalog";
+import {
+  getCatalogProductBySlug,
+  getCatalogProducts,
+  getRelatedProducts,
+} from "@/lib/catalog";
 
 type ProductPageProps = {
   params: Promise<{
@@ -38,13 +42,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const catalog = await getCatalogProducts();
+  const modelLineup = product.metadata.family
+    ? catalog
+        .filter((candidate) => candidate.metadata.family === product.metadata.family)
+        .sort((left, right) => (left.metadata.tierRank ?? 99) - (right.metadata.tierRank ?? 99))
+    : [];
   const relatedProducts = await getRelatedProducts(product.metadata.relatedProductSlugs ?? []);
 
   return (
     <>
       <SiteHeader />
       <main>
-        <Configurator product={product} />
+        <Configurator product={product} modelLineup={modelLineup} />
 
         {relatedProducts.length ? (
           <section className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6 lg:px-8">

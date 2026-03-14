@@ -2,15 +2,11 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getCartItemTotal } from "@/lib/cart-types";
 import type { CartItem } from "@/lib/cart-types";
 import { formatCurrency } from "@/lib/format";
-
-const inputClass =
-  "w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-[#ff5a1f] focus:outline-none focus:ring-1 focus:ring-[#ff5a1f]";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
@@ -18,6 +14,79 @@ const US_STATES = [
   "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
   "VA","WA","WV","WI","WY","DC",
 ];
+
+const inputBase =
+  "w-full rounded-2xl border bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-[#ff5a1f] focus:outline-none focus:ring-1 focus:ring-[#ff5a1f] transition";
+const inputNormal = `${inputBase} border-white/10`;
+const inputError = `${inputBase} border-red-500/50`;
+
+const trustBadges = [
+  { src: "/figma/trust-warranty.svg", label: "Warranty" },
+  { src: "/figma/trust-shipping.svg", label: "Shipping" },
+  { src: "/figma/trust-support.svg", label: "Support" },
+];
+
+// --- Validation helpers ---
+
+type FormFields = {
+  name: string;
+  email: string;
+  phone: string;
+  street: string;
+  apt: string;
+  city: string;
+  state: string;
+  zip: string;
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ZIP_RE = /^\d{5}(-\d{4})?$/;
+const PHONE_RE = /^[\d\s().+\-]{7,20}$/;
+
+function validateField(field: keyof FormFields, value: string): string {
+  switch (field) {
+    case "name":
+      if (!value.trim()) return "Full name is required";
+      if (value.length > 100) return "Name must be under 100 characters";
+      return "";
+    case "email":
+      if (!value.trim()) return "Email is required";
+      if (!EMAIL_RE.test(value)) return "Please enter a valid email address";
+      return "";
+    case "phone":
+      if (value.trim() && !PHONE_RE.test(value)) return "Please enter a valid phone number";
+      return "";
+    case "street":
+      if (!value.trim()) return "Street address is required";
+      if (value.length > 200) return "Street must be under 200 characters";
+      return "";
+    case "city":
+      if (!value.trim()) return "City is required";
+      if (value.length > 100) return "City must be under 100 characters";
+      return "";
+    case "state":
+      if (!value) return "Please select a state";
+      return "";
+    case "zip":
+      if (!value.trim()) return "ZIP code is required";
+      if (!ZIP_RE.test(value)) return "Enter a valid ZIP code (e.g. 12345)";
+      return "";
+    default:
+      return "";
+  }
+}
+
+function validateAll(fields: FormFields): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const key of Object.keys(fields) as (keyof FormFields)[]) {
+    if (key === "apt") continue; // optional
+    const err = validateField(key, fields[key]);
+    if (err) errors[key] = err;
+  }
+  return errors;
+}
+
+// --- Components ---
 
 function CartItemRow({ item }: { item: CartItem }) {
   const isConfigured = item.kind === "configured";
@@ -52,37 +121,33 @@ function CartItemRow({ item }: { item: CartItem }) {
   );
 }
 
-const trustBadges = [
-  { src: "/figma/trust-warranty.svg", label: "Warranty" },
-  { src: "/figma/trust-shipping.svg", label: "Shipping" },
-  { src: "/figma/trust-support.svg", label: "Support" },
-];
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} className="mt-1 text-xs text-red-400">
+      {message}
+    </p>
+  );
+}
+
+// --- Main form ---
 
 export function CheckoutForm() {
   const router = useRouter();
-  const auth = useAuth();
-  const { items, totalCents, hydrated } = useCart();
+  const { items, totalCents, hydrated, openCart } = useCart();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  // Account section state
-  const [accountTab, setAccountTab] = useState<"create" | "guest">("guest");
-  const [accountName, setAccountName] = useState("");
-  const [accountEmail, setAccountEmail] = useState("");
-  const [accountPassword, setAccountPassword] = useState("");
-  const [accountError, setAccountError] = useState("");
-
-  // Contact info
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-
-  // Shipping
-  const [street, setStreet] = useState("");
-  const [apt, setApt] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zip, setZip] = useState("");
-
-  // Checkout
+  const [fields, setFields] = useState<FormFields>({
+    name: "",
+    email: "",
+    phone: "",
+    street: "",
+    apt: "",
+    city: "",
+    state: "",
+    zip: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
@@ -93,36 +158,48 @@ export function CheckoutForm() {
     }
   }, [hydrated, items.length, router]);
 
-  // Pre-fill contact info when auth user loads
-  useEffect(() => {
-    if (auth.user) {
-      setContactName(auth.user.name);
-      setContactEmail(auth.user.email);
-    }
-  }, [auth.user]);
+  const setField = useCallback(
+    (field: keyof FormFields, value: string) => {
+      setFields((prev) => ({ ...prev, [field]: value }));
+      // Clear error optimistically on change if field already has an error
+      setErrors((prev) => {
+        if (!prev[field]) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    },
+    [],
+  );
 
-  function handleCreateAccount() {
-    setAccountError("");
-    if (!accountEmail || !accountName || !accountPassword) {
-      setAccountError("All fields are required.");
-      return;
-    }
-    auth.createAccount(accountEmail, accountName, accountPassword);
-    setContactName(accountName);
-    setContactEmail(accountEmail);
-  }
+  const handleBlur = useCallback(
+    (field: keyof FormFields) => {
+      if (field === "apt") return;
+      const err = validateField(field, fields[field]);
+      setErrors((prev) => {
+        if (!err) {
+          if (!prev[field]) return prev;
+          const next = { ...prev };
+          delete next[field];
+          return next;
+        }
+        return { ...prev, [field]: err };
+      });
+    },
+    [fields],
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setCheckoutError("");
 
-    const email = contactEmail || accountEmail;
-    if (!email) {
-      setCheckoutError("Email is required.");
-      return;
-    }
-    if (!street || !city || !state || !zip) {
-      setCheckoutError("Please fill in all required shipping fields.");
+    const fieldErrors = validateAll(fields);
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors);
+      // Focus first invalid field
+      const firstKey = Object.keys(fieldErrors)[0];
+      const el = formRef.current?.querySelector<HTMLElement>(`[name="${firstKey}"]`);
+      el?.focus();
       return;
     }
 
@@ -144,14 +221,15 @@ export function CheckoutForm() {
             quantity: item.quantity,
           };
         }),
-        customerEmail: email,
-        customerName: contactName,
+        customerEmail: fields.email,
+        customerName: fields.name,
+        customerPhone: fields.phone || undefined,
         shippingAddress: {
-          street,
-          apt: apt || undefined,
-          city,
-          state,
-          zip,
+          street: fields.street,
+          apt: fields.apt || undefined,
+          city: fields.city,
+          state: fields.state,
+          zip: fields.zip,
           country: "US",
         },
       };
@@ -181,6 +259,8 @@ export function CheckoutForm() {
     return null;
   }
 
+  const inputClassName = (field: string) => (errors[field] ? inputError : inputNormal);
+
   return (
     <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="font-display text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
@@ -190,116 +270,15 @@ export function CheckoutForm() {
         Review your order and enter your details to complete your purchase.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 gap-8 lg:grid lg:grid-cols-[1fr_400px]">
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        noValidate
+        className="mt-8 gap-8 lg:grid lg:grid-cols-[1fr_400px]"
+      >
         {/* Left Column — Form Sections */}
         <div className="space-y-6">
-          {/* Section A: Account */}
-          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-              Account
-            </p>
-            <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.04em] text-white">
-              Sign in or continue as guest
-            </h2>
-
-            {auth.isLoading ? (
-              <div className="mt-4 text-sm text-white/40">Loading...</div>
-            ) : auth.user ? (
-              <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                <span className="text-sm text-white">
-                  Signed in as <span className="font-semibold">{auth.user.email}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={auth.logout}
-                  className="text-xs text-white/40 transition hover:text-[#ff5a1f]"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="mt-4 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setAccountTab("guest")}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                      accountTab === "guest"
-                        ? "bg-white/10 text-white"
-                        : "text-white/50 hover:text-white"
-                    }`}
-                  >
-                    Continue as Guest
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAccountTab("create")}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                      accountTab === "create"
-                        ? "bg-white/10 text-white"
-                        : "text-white/50 hover:text-white"
-                    }`}
-                  >
-                    Create Account
-                  </button>
-                </div>
-
-                {accountError && (
-                  <div className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                    {accountError}
-                  </div>
-                )}
-
-                {accountTab === "guest" ? (
-                  <div className="mt-4">
-                    <input
-                      type="email"
-                      placeholder="Email address"
-                      value={contactEmail}
-                      onChange={(e) => setContactEmail(e.target.value)}
-                      className={inputClass}
-                    />
-                    <p className="mt-2 text-xs text-white/30">
-                      We'll use this for your order confirmation.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-4 space-y-3">
-                    <input
-                      type="text"
-                      placeholder="Full name"
-                      value={accountName}
-                      onChange={(e) => setAccountName(e.target.value)}
-                      className={inputClass}
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email address"
-                      value={accountEmail}
-                      onChange={(e) => setAccountEmail(e.target.value)}
-                      className={inputClass}
-                    />
-                    <input
-                      type="password"
-                      placeholder="Password"
-                      value={accountPassword}
-                      onChange={(e) => setAccountPassword(e.target.value)}
-                      className={inputClass}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateAccount}
-                      className="inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/20"
-                    >
-                      Create Account
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Section B: Contact Information */}
+          {/* Contact Information */}
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
               Contact
@@ -308,34 +287,64 @@ export function CheckoutForm() {
               Contact information
             </h2>
             <div className="mt-4 space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="checkout-name" className="mb-1.5 block text-sm font-medium text-white/70">
+                  Full name <span className="text-red-400">*</span>
+                </label>
                 <input
+                  id="checkout-name"
+                  name="name"
                   type="text"
-                  placeholder="Full name"
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  className={inputClass}
+                  autoComplete="name"
+                  value={fields.name}
+                  onChange={(e) => setField("name", e.target.value)}
+                  onBlur={() => handleBlur("name")}
+                  aria-invalid={!!errors.name}
+                  aria-describedby={errors.name ? "err-name" : undefined}
+                  className={inputClassName("name")}
                 />
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  required
-                  className={inputClass}
-                />
+                <FieldError id="err-name" message={errors.name} />
               </div>
-              <input
-                type="tel"
-                placeholder="Phone (optional)"
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-                className={inputClass}
-              />
+              <div>
+                <label htmlFor="checkout-email" className="mb-1.5 block text-sm font-medium text-white/70">
+                  Email <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="checkout-email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  value={fields.email}
+                  onChange={(e) => setField("email", e.target.value)}
+                  onBlur={() => handleBlur("email")}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "err-email" : undefined}
+                  className={inputClassName("email")}
+                />
+                <FieldError id="err-email" message={errors.email} />
+              </div>
+              <div>
+                <label htmlFor="checkout-phone" className="mb-1.5 block text-sm font-medium text-white/70">
+                  Phone <span className="text-white/30">(optional)</span>
+                </label>
+                <input
+                  id="checkout-phone"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  value={fields.phone}
+                  onChange={(e) => setField("phone", e.target.value)}
+                  onBlur={() => handleBlur("phone")}
+                  aria-invalid={!!errors.phone}
+                  aria-describedby={errors.phone ? "err-phone" : undefined}
+                  className={inputClassName("phone")}
+                />
+                <FieldError id="err-phone" message={errors.phone} />
+              </div>
             </div>
           </div>
 
-          {/* Section C: Shipping Address */}
+          {/* Shipping Address */}
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
               Shipping
@@ -344,65 +353,124 @@ export function CheckoutForm() {
               Shipping address
             </h2>
             <div className="mt-4 space-y-3">
-              <input
-                type="text"
-                placeholder="Street address"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                required
-                className={inputClass}
-              />
-              <input
-                type="text"
-                placeholder="Apt / Suite (optional)"
-                value={apt}
-                onChange={(e) => setApt(e.target.value)}
-                className={inputClass}
-              />
+              <div>
+                <label htmlFor="checkout-street" className="mb-1.5 block text-sm font-medium text-white/70">
+                  Street address <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="checkout-street"
+                  name="street"
+                  type="text"
+                  autoComplete="address-line1"
+                  value={fields.street}
+                  onChange={(e) => setField("street", e.target.value)}
+                  onBlur={() => handleBlur("street")}
+                  aria-invalid={!!errors.street}
+                  aria-describedby={errors.street ? "err-street" : undefined}
+                  className={inputClassName("street")}
+                />
+                <FieldError id="err-street" message={errors.street} />
+              </div>
+              <div>
+                <label htmlFor="checkout-apt" className="mb-1.5 block text-sm font-medium text-white/70">
+                  Apt / Suite <span className="text-white/30">(optional)</span>
+                </label>
+                <input
+                  id="checkout-apt"
+                  name="apt"
+                  type="text"
+                  autoComplete="address-line2"
+                  value={fields.apt}
+                  onChange={(e) => setField("apt", e.target.value)}
+                  className={inputNormal}
+                />
+              </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <input
-                  type="text"
-                  placeholder="City"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                  className={inputClass}
-                />
-                <select
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  required
-                  className={inputClass}
-                >
-                  <option value="">State</option>
-                  {US_STATES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="ZIP code"
-                  value={zip}
-                  onChange={(e) => setZip(e.target.value)}
-                  required
-                  className={inputClass}
-                />
+                <div>
+                  <label htmlFor="checkout-city" className="mb-1.5 block text-sm font-medium text-white/70">
+                    City <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="checkout-city"
+                    name="city"
+                    type="text"
+                    autoComplete="address-level2"
+                    value={fields.city}
+                    onChange={(e) => setField("city", e.target.value)}
+                    onBlur={() => handleBlur("city")}
+                    aria-invalid={!!errors.city}
+                    aria-describedby={errors.city ? "err-city" : undefined}
+                    className={inputClassName("city")}
+                  />
+                  <FieldError id="err-city" message={errors.city} />
+                </div>
+                <div>
+                  <label htmlFor="checkout-state" className="mb-1.5 block text-sm font-medium text-white/70">
+                    State <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    id="checkout-state"
+                    name="state"
+                    autoComplete="address-level1"
+                    value={fields.state}
+                    onChange={(e) => setField("state", e.target.value)}
+                    onBlur={() => handleBlur("state")}
+                    aria-invalid={!!errors.state}
+                    aria-describedby={errors.state ? "err-state" : undefined}
+                    className={inputClassName("state")}
+                  >
+                    <option value="">State</option>
+                    {US_STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                  <FieldError id="err-state" message={errors.state} />
+                </div>
+                <div>
+                  <label htmlFor="checkout-zip" className="mb-1.5 block text-sm font-medium text-white/70">
+                    ZIP code <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="checkout-zip"
+                    name="zip"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    value={fields.zip}
+                    onChange={(e) => setField("zip", e.target.value)}
+                    onBlur={() => handleBlur("zip")}
+                    aria-invalid={!!errors.zip}
+                    aria-describedby={errors.zip ? "err-zip" : undefined}
+                    className={inputClassName("zip")}
+                  />
+                  <FieldError id="err-zip" message={errors.zip} />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Mobile-only order summary */}
           <div className="lg:hidden">
-            <OrderSummaryCard items={items} totalCents={totalCents} isSubmitting={isSubmitting} />
+            <OrderSummaryCard
+              items={items}
+              totalCents={totalCents}
+              isSubmitting={isSubmitting}
+              onEditCart={openCart}
+            />
           </div>
         </div>
 
         {/* Right Column — Sticky Order Summary (desktop only) */}
         <div className="hidden lg:block">
           <div className="sticky top-28">
-            <OrderSummaryCard items={items} totalCents={totalCents} isSubmitting={isSubmitting} />
+            <OrderSummaryCard
+              items={items}
+              totalCents={totalCents}
+              isSubmitting={isSubmitting}
+              onEditCart={openCart}
+            />
           </div>
         </div>
 
@@ -421,16 +489,27 @@ function OrderSummaryCard({
   items,
   totalCents,
   isSubmitting,
+  onEditCart,
 }: {
   items: CartItem[];
   totalCents: number;
   isSubmitting: boolean;
+  onEditCart: () => void;
 }) {
   return (
     <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-        Order Summary
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
+          Order Summary
+        </p>
+        <button
+          type="button"
+          onClick={onEditCart}
+          className="text-xs font-medium text-white/40 transition hover:text-[#ff5a1f]"
+        >
+          Edit cart
+        </button>
+      </div>
 
       <div className="mt-4 space-y-3">
         {items.map((item) => (
@@ -456,13 +535,19 @@ function OrderSummaryCard({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#ff5a1f] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(255,90,31,0.35)] transition hover:bg-[#e04f1a] disabled:opacity-60"
+        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#ff5a1f] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(255,90,31,0.35)] transition hover:bg-[#e04f1a] disabled:opacity-60"
       >
-        {isSubmitting ? "Redirecting to Stripe..." : "Pay with Stripe"}
+        {isSubmitting && (
+          <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        )}
+        {isSubmitting ? "Redirecting to Stripe..." : "Continue to Payment"}
       </button>
 
       <p className="mt-3 text-center text-xs text-white/30">
-        You'll be redirected to Stripe's secure checkout to complete payment.
+        You&apos;ll be redirected to Stripe&apos;s secure checkout to complete payment.
       </p>
 
       <div className="mt-6 flex items-center justify-center gap-6 border-t border-white/10 pt-5">

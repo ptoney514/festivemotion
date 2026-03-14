@@ -30,16 +30,17 @@ export const cartItemSchema = z.discriminatedUnion("kind", [
 
 export const cartCheckoutRequestSchema = z.object({
   items: z.array(cartItemSchema).min(1).max(20),
-  customerEmail: z.string().email().optional(),
-  customerName: z.string().max(100).optional(),
+  customerEmail: z.string().email("Please enter a valid email"),
+  customerName: z.string().min(1, "Name is required").max(100),
+  customerPhone: z.string().max(20).optional().or(z.literal("")),
   shippingAddress: z.object({
-    street: z.string().max(200),
+    street: z.string().min(1, "Street address is required").max(200),
     apt: z.string().max(50).optional(),
-    city: z.string().max(100),
-    state: z.string().max(50),
-    zip: z.string().max(20),
+    city: z.string().min(1, "City is required").max(100),
+    state: z.string().length(2, "Please select a state"),
+    zip: z.string().regex(/^\d{5}(-\d{4})?$/, "ZIP must be 5 digits or ZIP+4"),
     country: z.string().max(2).default("US"),
-  }).optional(),
+  }),
 });
 
 export type CartCheckoutRequest = z.infer<typeof cartCheckoutRequestSchema>;

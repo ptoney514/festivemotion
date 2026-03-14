@@ -107,6 +107,17 @@ export const orders = pgTable(
     stripePaymentIntentId: text("stripe_payment_intent_id"),
     status: text("status").notNull(),
     customerEmail: text("customer_email"),
+    customerName: text("customer_name"),
+    customerPhone: text("customer_phone"),
+    stripeCustomerId: text("stripe_customer_id"),
+    shippingAddress: jsonb("shipping_address").$type<{
+      street: string;
+      apt?: string;
+      city: string;
+      state: string;
+      zip: string;
+      country: string;
+    }>(),
     amountTotalCents: integer("amount_total_cents").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },

@@ -26,7 +26,7 @@ export default function CancelPage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/products"
-              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90"
+              className="button-light inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition"
             >
               Back to products
             </Link>

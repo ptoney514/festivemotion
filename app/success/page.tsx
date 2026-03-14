@@ -91,7 +91,34 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                     ))}
                   </div>
                 </div>
-              ) : summary.snapshot?.selectedOptions?.length ? (
+              ) : null}
+
+              {(summary.customerName || summary.shippingAddress) ? (
+                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                  {summary.customerName ? (
+                    <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                      <p className="text-xs uppercase tracking-[0.16em] text-white/45">Customer</p>
+                      <p className="mt-2 text-base font-semibold text-white">{summary.customerName}</p>
+                    </div>
+                  ) : null}
+                  {summary.shippingAddress ? (
+                    <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                      <p className="text-xs uppercase tracking-[0.16em] text-white/45">Ships to</p>
+                      <p className="mt-2 text-sm leading-6 text-white">
+                        {summary.shippingAddress.street}
+                        {summary.shippingAddress.apt ? `, ${summary.shippingAddress.apt}` : ""}
+                        <br />
+                        {summary.shippingAddress.city}, {summary.shippingAddress.state}{" "}
+                        {summary.shippingAddress.zip}
+                        <br />
+                        {summary.shippingAddress.country}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {summary.snapshot?.selectedOptions?.length ? (
                 <div className="mt-8 rounded-[24px] border border-white/10 bg-black/20 p-5">
                   <p className="text-xs uppercase tracking-[0.16em] text-white/45">Build summary</p>
                   <div className="mt-4 space-y-3">
@@ -139,7 +166,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link
               href="/products"
-              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90"
+              className="button-light inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition"
             >
               Back to catalog
             </Link>

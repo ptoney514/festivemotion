@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
   }
 
-  const { customerEmail, customerName, shippingAddress } = parsed.data;
+  const { customerEmail, customerName, customerPhone, shippingAddress } = parsed.data;
 
   const db = getDb();
   const stripe = getStripe();
@@ -159,13 +159,33 @@ export async function POST(request: Request) {
     }
   }
 
+  // Create a Stripe Customer for order history / Customer Portal support
+  let stripeCustomerId: string | null = null;
+  if (stripe) {
+    try {
+      const customer = await stripe.customers.create({
+        email: customerEmail,
+        name: customerName,
+        phone: customerPhone ?? undefined,
+        metadata: { source: "festivemotion-checkout" },
+      });
+      stripeCustomerId = customer.id;
+    } catch (err) {
+      console.error("Failed to create Stripe Customer:", err);
+    }
+  }
+
   const [order] = await db
     .insert(orders)
     .values({
       configurationId: null,
       status: "pending",
       amountTotalCents: cartTotalCents,
-      customerEmail: customerEmail ?? null,
+      customerEmail,
+      customerName,
+      customerPhone: customerPhone ?? null,
+      shippingAddress,
+      stripeCustomerId,
     })
     .returning();
 
@@ -190,10 +210,13 @@ export async function POST(request: Request) {
         success_url: `${getSiteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${getSiteUrl()}/cancel`,
         line_items: stripeLineItems,
-        customer_email: customerEmail,
+        ...(stripeCustomerId
+          ? { customer: stripeCustomerId }
+          : { customer_email: customerEmail }),
         metadata: {
           orderId: order.id,
           customerName: customerName ?? "",
+          customerPhone: customerPhone ?? "",
           shippingAddress: shippingAddress ? JSON.stringify(shippingAddress) : "",
         },
       });

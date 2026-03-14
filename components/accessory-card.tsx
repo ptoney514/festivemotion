@@ -45,7 +45,7 @@ export function AccessoryCard({ accessory }: { accessory: Accessory }) {
           type="button"
           onClick={handleAdd}
           disabled={added}
-          className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90 disabled:bg-white/30 disabled:text-white/60"
+          className="button-light inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition"
         >
           {added ? "Added!" : "Add to Cart"}
         </button>

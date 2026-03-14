@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context";
 import type { CatalogProduct, PricedConfiguration, SelectionMap } from "@/lib/types";
 import { OptionGroup } from "@/components/Configurator/OptionGroup";
 import { SummaryCard } from "@/components/Configurator/SummaryCard";
+import { SkullModelCard } from "@/components/skull-model-card";
 
 function buildGallery(product: CatalogProduct, selections: SelectionMap) {
   const configuredImage = getConfiguredImage(product, selections);
@@ -24,7 +25,13 @@ function buildGallery(product: CatalogProduct, selections: SelectionMap) {
   ];
 }
 
-export function Configurator({ product }: { product: CatalogProduct }) {
+export function Configurator({
+  product,
+  modelLineup = [],
+}: {
+  product: CatalogProduct;
+  modelLineup?: CatalogProduct[];
+}) {
   const initialSelections = buildDefaultSelections(product);
   const [selections, setSelections] = useState<SelectionMap>(initialSelections);
   const [serverPrice, setServerPrice] = useState<PricedConfiguration>(
@@ -195,6 +202,25 @@ export function Configurator({ product }: { product: CatalogProduct }) {
               <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65">
                 {product.metadata.heroSummary ?? product.description}
               </p>
+              {product.metadata.capabilities?.length ? (
+                <div className="mt-6 grid gap-3 border-t border-white/10 pt-6 sm:grid-cols-2">
+                  {product.metadata.capabilities.map((capability) => (
+                    <div
+                      key={capability.label}
+                      className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4"
+                    >
+                      <p className="text-sm font-medium text-white">{capability.label}</p>
+                      <p
+                        className={`mt-2 text-xs uppercase tracking-[0.16em] ${
+                          capability.included ? "text-[#ffb089]" : "text-white/40"
+                        }`}
+                      >
+                        {capability.included ? "Included In This Model" : "Not Included"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <div className="mt-6 flex flex-wrap items-end gap-6 border-t border-white/10 pt-6">
                 <div>
                   <p className="text-xs uppercase tracking-[0.16em] text-white/45">From</p>
@@ -207,6 +233,35 @@ export function Configurator({ product }: { product: CatalogProduct }) {
                 ) : null}
               </div>
             </div>
+
+            {modelLineup.length > 1 ? (
+              <section className="rounded-[32px] border border-white/10 bg-white/[0.03] p-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
+                  Skull lineup
+                </p>
+                <h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.04em] text-white">
+                  Choose your motion package first.
+                </h2>
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">
+                  Bare Bones, Plus, and Pro are separate products. This page keeps you on{" "}
+                  {product.metadata.tier ?? product.name}; if you need a different movement
+                  package, switch models here before you configure the base, routines, and
+                  add-ons below.
+                </p>
+
+                <div className="mt-6 grid gap-4 xl:grid-cols-3">
+                  {modelLineup.map((model) => (
+                    <SkullModelCard
+                      key={model.slug}
+                      product={model}
+                      current={model.slug === product.slug}
+                      ctaLabel="Switch Model"
+                      showImage={false}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <div className="xl:hidden">
               <SummaryCard
@@ -349,7 +404,7 @@ export function Configurator({ product }: { product: CatalogProduct }) {
             type="button"
             onClick={handleAddToCart}
             disabled={addedFeedback || isPricingSyncing || !displayPrice.valid}
-            className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/30 disabled:text-white/60"
+            className="button-light inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed"
           >
             {addedFeedback ? "Added!" : "Add to Cart"}
           </button>

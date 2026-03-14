@@ -145,6 +145,8 @@ export async function getSuccessSummary(sessionId: string) {
         ["paid", "mock_paid"].includes(fromDatabase.order.status) ? ("paid" as const) : ("processing" as const),
       orderId: fromDatabase.order.id,
       email: fromDatabase.order.customerEmail,
+      customerName: fromDatabase.order.customerName ?? null,
+      shippingAddress: fromDatabase.order.shippingAddress ?? null,
       amountTotalCents: fromDatabase.order.amountTotalCents,
       productName: fromDatabase.product?.name ?? "FestiveMotion order",
       snapshot: getConfigurationSnapshot(fromDatabase),
