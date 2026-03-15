@@ -72,11 +72,11 @@ export default function ContactPage() {
             Support
           </p>
           <h1 className="mt-3 font-display text-5xl font-semibold tracking-[-0.06em] text-white">
-            We're here to help.
+            We&apos;re here to help.
           </h1>
           <p className="mx-auto mt-5 max-w-lg text-sm leading-7 text-white/65">
             Check the FAQs below for quick answers. Need something else? Send us a message
-            and we'll respond within 24 hours.
+            and we&apos;ll respond within 24 hours.
           </p>
         </section>
 

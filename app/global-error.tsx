@@ -51,6 +51,7 @@ export default function GlobalError({
             >
               Try again
             </button>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- global-error renders outside the Next.js app shell, <Link> is unavailable */}
             <a
               href="/"
               style={{

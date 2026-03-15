@@ -132,6 +132,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     dispatch({ type: "HYDRATE", items: loadCart() });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrating client-only state from localStorage on mount is the standard pattern
     setHydrated(true);
   }, []);
 

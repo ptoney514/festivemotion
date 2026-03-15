@@ -85,7 +85,7 @@ export function ContactForm() {
         Send us a message
       </h2>
       <p className="mt-2 text-sm leading-7 text-white/65">
-        Fill out the form below and we'll get back to you within 24 hours.
+        Fill out the form below and we&apos;ll get back to you within 24 hours.
       </p>
 
       {state.status === "error" && (

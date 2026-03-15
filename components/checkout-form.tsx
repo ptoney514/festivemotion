@@ -157,6 +157,7 @@ export function CheckoutForm() {
   useEffect(() => {
     if (session?.user) {
       const user = session.user;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- pre-filling form fields from async session data on login
       setFields((prev) => ({
         ...prev,
         name: prev.name || user.name || "",
