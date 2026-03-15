@@ -35,16 +35,16 @@ export default async function HomePage() {
   const showcaseProducts = [...skullModels, ...specialtyProducts];
 
   const heroProduct =
-    products.find((product) => product.slug === "skulltronix-skullkin") ??
+    products.find((product) => product.slug === "skulltronix-skull") ??
     showcaseProducts[0];
 
   const heroImage =
     heroProduct?.metadata.heroImageUrl ??
     heroProduct?.imageUrl ??
     "/products/dancing-pumpkin-hero.webp";
-  const heroTagline = heroProduct?.metadata.heroTagline ?? "Built to draw a crowd.";
-  const heroHref = `/products/${heroProduct?.slug ?? "skulltronix-skullkin"}`;
-  const heroActionLabel = heroProduct?.metadata.heroCtaLabel ?? "View Product";
+  const heroTagline = heroProduct?.metadata.heroTagline ?? "Full-motion. Show-ready. Built to perform.";
+  const heroHref = `/products/${heroProduct?.slug ?? "skulltronix-skull"}`;
+  const heroActionLabel = heroProduct?.metadata.heroCtaLabel ?? "Build Your Skull Pro";
 
   const [featuredProduct, ...remainingProducts] = showcaseProducts;
 
@@ -67,7 +67,7 @@ export default async function HomePage() {
                   {heroProduct?.metadata.heroEyebrow ?? "Featured Animatronic"}
                 </p>
                 <h1 className="mt-4 max-w-[10ch] font-display text-5xl font-semibold tracking-[-0.06em] text-white sm:text-6xl">
-                  {heroProduct?.name ?? "SkullTronix Skullkin"}
+                  {heroProduct?.name ?? "SkullTronix Skull Pro"}
                 </h1>
                 <p className="mt-3 text-xl font-semibold tracking-[-0.05em] text-[#ffd7c5] sm:text-2xl">
                   {heroTagline}
