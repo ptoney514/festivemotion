@@ -948,18 +948,18 @@ export const catalogSeed: CatalogProduct[] = [
       gallery: [
         {
           type: "image",
-          src: "/figma/pdp/pumpkin-main.png",
-          alt: "Front hero view of the Dancing Pumpkin animatronic.",
+          src: "/images/placeholder-gallery.svg",
+          alt: "Gallery image placeholder.",
         },
         {
           type: "image",
-          src: "/figma/pdp/pumpkin-detail.png",
-          alt: "Close-up detail of the Dancing Pumpkin face and glow effects.",
+          src: "/images/placeholder-gallery.svg",
+          alt: "Gallery image placeholder.",
         },
         {
           type: "image",
-          src: "/figma/pdp/pumpkin-side.png",
-          alt: "Side profile of the Dancing Pumpkin animatronic.",
+          src: "/images/placeholder-gallery.svg",
+          alt: "Gallery image placeholder.",
         },
       ],
       featureCards: [

@@ -40,7 +40,7 @@ export function SummaryCard({
             {price.selectedOptions.map((group) => (
               <div key={group.groupSlug} className="flex items-start justify-between gap-4">
                 <span className="text-sm text-white/50">{group.groupName}</span>
-                <span className="max-w-[65%] text-right text-sm font-medium text-white">
+                <span className="max-w-[65%] truncate text-right text-sm font-medium text-white">
                   {group.labels.join(", ")}
                 </span>
               </div>
