@@ -52,16 +52,37 @@ export default async function HomePage() {
   const heroHref = `/products/${heroProduct?.slug ?? "skulltronix-skullkin"}`;
   const heroActionLabel = heroProduct?.metadata.heroCtaLabel ?? "View Product";
 
+  const [featuredProduct, ...remainingProducts] = showcaseProducts;
+
   return (
     <>
       <SiteHeader />
       <main>
+        {/* ── Hero ── */}
         <section className="relative overflow-hidden border-b border-white/10">
           <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.28),_transparent_58%)]" />
           <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(255,120,60,0.16),_transparent_60%)] blur-3xl" />
 
           <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
             <div className="grid items-center gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:gap-10">
+              {/* Hero image — shows first on mobile, second on desktop */}
+              <div className="relative order-first lg:order-last">
+                <div className="absolute inset-x-[12%] bottom-6 h-24 rounded-full bg-[#ff6d39]/30 blur-3xl" />
+                <div className="relative mx-auto max-w-[660px] overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(8,8,8,0.16))] p-4 shadow-[0_35px_100px_rgba(0,0,0,0.52)]">
+                  <div className="relative aspect-[4/5] max-h-[420px] overflow-hidden rounded-[28px] bg-[radial-gradient(circle_at_top,_rgba(255,119,54,0.14),_transparent_48%),linear-gradient(180deg,#081119,#040404)] sm:max-h-none">
+                    <Image
+                      src={heroImage}
+                      alt={`${heroProduct?.name ?? "Featured product"} animatronic product photo.`}
+                      fill
+                      priority
+                      className="object-cover object-center"
+                      sizes="(max-width: 1024px) 100vw, 56vw"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Hero text */}
               <div className="relative z-10">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ffb089]">
                   {heroProduct?.metadata.heroEyebrow ?? "Featured Animatronic"}
@@ -86,18 +107,21 @@ export default async function HomePage() {
                   >
                     See All Products
                   </Link>
-                </div>
-
-                <p className="mt-5 text-sm text-white/60">
-                  Starting at{" "}
-                  <span className="font-semibold text-white">
-                    {formatCurrency(heroProduct?.basePriceCents ?? 149500)}
+                  <span className="text-sm text-white/60">
+                    From{" "}
+                    <span className="font-semibold text-white">
+                      {formatCurrency(heroProduct?.basePriceCents ?? 149500)}
+                    </span>
                   </span>
-                </p>
+                </div>
 
                 <p className="mt-5 max-w-xl text-sm leading-7 text-white/68">{heroSummary}</p>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                {/* Highlights — inline on mobile, cards on sm+ */}
+                <p className="mt-5 text-sm text-white/72 sm:hidden">
+                  {heroHighlights.join(" · ")}
+                </p>
+                <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-3">
                   {heroHighlights.map((item) => (
                     <div
                       key={item}
@@ -108,24 +132,9 @@ export default async function HomePage() {
                   ))}
                 </div>
               </div>
-
-              <div className="relative">
-                <div className="absolute inset-x-[12%] bottom-6 h-24 rounded-full bg-[#ff6d39]/30 blur-3xl" />
-                <div className="relative mx-auto max-w-[660px] overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(8,8,8,0.16))] p-4 shadow-[0_35px_100px_rgba(0,0,0,0.52)]">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[28px] bg-[radial-gradient(circle_at_top,_rgba(255,119,54,0.14),_transparent_48%),linear-gradient(180deg,#081119,#040404)]">
-                    <Image
-                      src={heroImage}
-                      alt={`${heroProduct?.name ?? "Featured product"} animatronic product photo.`}
-                      fill
-                      priority
-                      className="object-cover object-center"
-                      sizes="(max-width: 1024px) 100vw, 56vw"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
 
+            {/* ── Shop the Floor — horizontal scroll on mobile ── */}
             <div className="mt-8 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.12))] p-5 sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -142,51 +151,25 @@ export default async function HomePage() {
                 </p>
               </div>
 
-              <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 lg:grid-cols-7">
+              {/* Horizontal scroll on mobile, grid on sm+ */}
+              <div className="scrollbar-hide -mx-1 mt-6 flex gap-1 overflow-x-auto px-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:px-0 lg:grid-cols-7">
                 {showcaseProducts.map((product, index) => (
-                  <HomeProductChip key={product.slug} product={product} priority={index < 3} />
+                  <div key={product.slug} className="flex-shrink-0 sm:flex-shrink">
+                    <HomeProductChip product={product} priority={index < 3} />
+                  </div>
                 ))}
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-                Catalog View
-              </p>
-              <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em] text-white">
-                Everything for sale, without the extra scrolling.
-              </h2>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/60">
-                The skull tiers stay grouped up front, and the specialty builds sit right
-                alongside them so booth visitors can compare the full line before opening a
-                detail page.
-              </p>
-            </div>
-            <Link
-              href="/products"
-              className="text-sm font-medium text-white/70 transition hover:text-white"
-            >
-              Open full catalog
-            </Link>
-          </div>
-
-          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {showcaseProducts.map((product, index) => (
-              <HomeProductTile key={product.slug} product={product} priority={index < 4} />
-            ))}
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-8">
-          <div className="grid gap-4 lg:grid-cols-3">
+        {/* ── Venue cards — moved above catalog ── */}
+        <section className="mx-auto max-w-[1280px] px-4 pt-12 sm:px-6 lg:px-8">
+          <div className="scrollbar-hide -mx-1 flex gap-3 overflow-x-auto px-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
             {venueNotes.map((item) => (
               <article
                 key={item.title}
-                className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5"
+                className="min-w-[260px] flex-shrink-0 rounded-[24px] border border-white/10 bg-white/[0.03] p-5 sm:min-w-0 sm:flex-shrink"
               >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
                   Demo Fit
@@ -196,6 +179,40 @@ export default async function HomePage() {
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-white/60">{item.description}</p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Catalog ── */}
+        <section className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
+                Catalog
+              </p>
+              <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em] text-white">
+                The full lineup.
+              </h2>
+            </div>
+            <Link
+              href="/products"
+              className="text-sm font-medium text-white/70 transition hover:text-white"
+            >
+              Open full catalog
+            </Link>
+          </div>
+
+          {/* Featured first product — full width */}
+          {featuredProduct && (
+            <div className="mt-8">
+              <HomeProductTile product={featuredProduct} priority featured />
+            </div>
+          )}
+
+          {/* Remaining products — 2-col on mobile, 3-col on lg */}
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {remainingProducts.map((product, index) => (
+              <HomeProductTile key={product.slug} product={product} priority={index < 4} compact />
             ))}
           </div>
         </section>

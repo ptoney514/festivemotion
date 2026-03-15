@@ -58,6 +58,15 @@ input {
   font-family: var(--font-display), sans-serif;
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .button-light {
   background: #ffffff;
   color: #0f0f0f !important;
