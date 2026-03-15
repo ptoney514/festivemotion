@@ -18,12 +18,11 @@ const commonRoutineDefaults = [
 ];
 
 const skullLineupFamily = "skulltronix-skull-lineup";
-const whiteSkullImage =
-  "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp";
+const whiteSkullImage = "/images/Painted.webp";
 
 const skullStyleImages = {
   basic: whiteSkullImage,
-  painted: "https://festivemotion.com/wp-content/uploads/2025/08/Painted.webp",
+  painted: "/images/Painted.webp",
   witch: "https://festivemotion.com/wp-content/uploads/2025/08/Witch-scaled.webp",
   pirate: "https://festivemotion.com/wp-content/uploads/2025/08/Pirates.webp",
   clown: "https://festivemotion.com/wp-content/uploads/2025/08/Clown-600x900.webp",

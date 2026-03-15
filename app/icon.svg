@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#1a1510"/>
+      <stop offset="100%" stop-color="#080604"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#fffbe6" stop-opacity="0.95"/>
+      <stop offset="35%" stop-color="#dbb96a" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#0a0806" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="core" cx="50%" cy="50%" r="25%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="50%" stop-color="#f5e6b8"/>
+      <stop offset="100%" stop-color="#c4993b"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Dark rounded-square background -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+  <rect width="32" height="32" rx="7" fill="url(#glow)" opacity="0.5"/>
+
+  <!-- Starburst rays — 8-pointed star -->
+  <g transform="translate(16,16)" stroke="#c4993b" stroke-linecap="round" fill="none">
+    <!-- Cardinal rays (longer) -->
+    <line x1="0" y1="-4" x2="0" y2="-10.5" stroke-width="1.2" opacity="0.9"/>
+    <line x1="0" y1="4" x2="0" y2="10.5" stroke-width="1.2" opacity="0.9"/>
+    <line x1="-4" y1="0" x2="-10.5" y2="0" stroke-width="1.2" opacity="0.9"/>
+    <line x1="4" y1="0" x2="10.5" y2="0" stroke-width="1.2" opacity="0.9"/>
+    <!-- Diagonal rays (shorter) -->
+    <line x1="-2.8" y1="-2.8" x2="-7" y2="-7" stroke-width="0.9" opacity="0.7"/>
+    <line x1="2.8" y1="-2.8" x2="7" y2="-7" stroke-width="0.9" opacity="0.7"/>
+    <line x1="-2.8" y1="2.8" x2="-7" y2="7" stroke-width="0.9" opacity="0.7"/>
+    <line x1="2.8" y1="2.8" x2="7" y2="7" stroke-width="0.9" opacity="0.7"/>
+  </g>
+
+  <!-- Circuit-style dots at ray endpoints (brand motif) -->
+  <g fill="#4a6a8a">
+    <!-- Cardinal dots -->
+    <circle cx="16" cy="4.5" r="1.3"/>
+    <circle cx="16" cy="27.5" r="1.3"/>
+    <circle cx="4.5" cy="16" r="1.3"/>
+    <circle cx="27.5" cy="16" r="1.3"/>
+    <!-- Diagonal dots -->
+    <circle cx="8.2" cy="8.2" r="1"/>
+    <circle cx="23.8" cy="8.2" r="1"/>
+    <circle cx="8.2" cy="23.8" r="1"/>
+    <circle cx="23.8" cy="23.8" r="1"/>
+  </g>
+
+  <!-- Central glowing core -->
+  <circle cx="16" cy="16" r="3.5" fill="url(#core)"/>
+  <circle cx="16" cy="16" r="2" fill="#fffdf5" opacity="0.9"/>
+</svg>
