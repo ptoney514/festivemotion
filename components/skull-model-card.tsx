@@ -3,22 +3,92 @@ import Link from "next/link";
 import { formatCurrency } from "@/lib/format";
 import type { CatalogProduct } from "@/lib/types";
 
+/* ── Compact horizontal row (used in Skull Lineup) ─────────────────── */
+function SkullModelRow({
+  product,
+  current,
+}: {
+  product: CatalogProduct;
+  current: boolean;
+}) {
+  const inner = (
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex gap-3">
+        {/* radio-style marker */}
+        <span
+          className={`mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full border ${
+            current
+              ? "border-[#ff5a1f] bg-[#ff5a1f]"
+              : "border-white/20 bg-white/[0.04]"
+          }`}
+        >
+          {current ? <span className="size-2 rounded-full bg-white" /> : null}
+        </span>
+
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-white">{product.name}</span>
+            <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/60">
+              {product.metadata.tier ?? "Skull Model"}
+            </span>
+            {current ? (
+              <span className="rounded-full border border-[#ff8a63]/40 bg-[#ff5a1f]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#ffd7c5]">
+                Current
+              </span>
+            ) : null}
+          </div>
+          <p className="text-sm text-white/55">{product.shortDescription}</p>
+        </div>
+      </div>
+
+      <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-white">
+        {formatCurrency(product.basePriceCents)}
+      </span>
+    </div>
+  );
+
+  if (current) {
+    return (
+      <div className="w-full rounded-2xl border border-[#ff5a1f] bg-[rgba(255,90,31,0.08)] px-4 py-4 text-left">
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/products/${product.slug}`}
+      className="block w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-left transition hover:border-white/20 hover:bg-black/30"
+    >
+      {inner}
+    </Link>
+  );
+}
+
+/* ── Full vertical card (used on Products listing page) ────────────── */
 export function SkullModelCard({
   product,
   current = false,
   ctaLabel = "Configure Model",
   showImage = true,
+  compact = false,
 }: {
   product: CatalogProduct;
   current?: boolean;
   ctaLabel?: string;
   showImage?: boolean;
+  compact?: boolean;
 }) {
+  if (compact) {
+    return <SkullModelRow product={product} current={current} />;
+  }
+
   const capabilities = product.metadata.capabilities ?? [];
 
   return (
-    <article
-      className={`overflow-hidden rounded-[28px] border transition ${
+    <Link
+      href={`/products/${product.slug}`}
+      className={`group overflow-hidden rounded-[28px] border transition hover:-translate-y-1 ${
         current
           ? "border-[#ff5a1f]/80 bg-[linear-gradient(180deg,rgba(255,90,31,0.16),rgba(255,255,255,0.04))] shadow-[0_24px_80px_rgba(255,90,31,0.12)]"
           : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
@@ -30,7 +100,7 @@ export function SkullModelCard({
             src={product.imageUrl}
             alt={product.name}
             fill
-            className="object-cover object-center"
+            className="object-cover object-center transition duration-500 group-hover:scale-[1.03]"
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 30vw"
           />
         </div>
@@ -48,61 +118,23 @@ export function SkullModelCard({
           ) : null}
         </div>
 
-        <h3 className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white">
+        <h3 className="mt-3 font-display text-2xl font-semibold tracking-[-0.05em] text-white xl:text-3xl">
           {product.name}
         </h3>
         <p className="mt-3 text-sm leading-7 text-white/65">{product.shortDescription}</p>
 
-        <div className="mt-6 rounded-[22px] border border-white/10 bg-black/20 p-4">
-          <p className="text-xs uppercase tracking-[0.16em] text-white/45">Starting at</p>
-          <p className="mt-2 text-3xl font-semibold text-white">
-            {formatCurrency(product.basePriceCents)}
-          </p>
-        </div>
-
-        {capabilities.length ? (
-          <div className="mt-6 space-y-3">
-            {capabilities.map((capability) => (
-              <div
-                key={capability.label}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
-              >
-                <span
-                  className={`text-sm ${
-                    capability.included ? "text-white/80" : "text-white/40"
-                  }`}
-                >
-                  {capability.label}
-                </span>
-                <span
-                  className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
-                    capability.included
-                      ? "bg-[#ff5a1f]/12 text-[#ffd7c5]"
-                      : "bg-white/5 text-white/45"
-                  }`}
-                >
-                  {capability.included ? "Included" : "Not Included"}
-                </span>
-              </div>
-            ))}
+        <div className="flex items-end justify-between gap-4 border-t border-white/10 mt-6 pt-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-white/45">Starting at</p>
+            <p className="text-xl font-semibold text-white">
+              {formatCurrency(product.basePriceCents)}
+            </p>
           </div>
-        ) : null}
-
-        <div className="mt-6">
-          {current ? (
-            <span className="inline-flex w-full items-center justify-center rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white/60">
-              Current Model
-            </span>
-          ) : (
-            <Link
-              href={`/products/${product.slug}`}
-              className="button-light inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition"
-            >
-              {ctaLabel}
-            </Link>
-          )}
+          <span className="inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white transition group-hover:border-white/20">
+            {ctaLabel}
+          </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

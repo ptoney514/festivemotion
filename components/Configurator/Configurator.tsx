@@ -152,8 +152,8 @@ export function Configurator({
           <span className="text-white/70">{product.name}</span>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.95fr)_360px]">
-          <section className="xl:sticky xl:top-28 xl:self-start">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.95fr)_360px]">
+          <section className="lg:sticky lg:top-28 lg:self-start">
             <div className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.12))]">
               <div className="relative aspect-[4/5]">
                 <Image
@@ -249,14 +249,13 @@ export function Configurator({
                   add-ons below.
                 </p>
 
-                <div className="mt-6 grid gap-4 xl:grid-cols-3">
+                <div className="mt-5 grid gap-3">
                   {modelLineup.map((model) => (
                     <SkullModelCard
                       key={model.slug}
                       product={model}
                       current={model.slug === product.slug}
-                      ctaLabel="Switch Model"
-                      showImage={false}
+                      compact
                     />
                   ))}
                 </div>

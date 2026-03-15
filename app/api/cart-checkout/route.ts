@@ -1,6 +1,8 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+
+export const dynamic = "force-dynamic";
 import { getAccessoryBySlug } from "@/lib/accessories";
 import { getCatalogProductBySlug } from "@/lib/catalog";
 import { getDb } from "@/lib/db";

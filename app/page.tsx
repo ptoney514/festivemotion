@@ -38,16 +38,10 @@ export default async function HomePage() {
     products.find((product) => product.slug === "skulltronix-skullkin") ??
     showcaseProducts[0];
 
-  const heroHighlights = heroProduct?.metadata.heroHighlights ?? [
-    "Skull-pumpkin silhouette",
-    "Commercial show-control platform",
-    "Built for haunts and demos",
-  ];
   const heroImage =
     heroProduct?.metadata.heroImageUrl ??
     heroProduct?.imageUrl ??
     "/products/dancing-pumpkin-hero.webp";
-  const heroSummary = heroProduct?.metadata.heroSummary ?? heroProduct?.description ?? "";
   const heroTagline = heroProduct?.metadata.heroTagline ?? "Built to draw a crowd.";
   const heroHref = `/products/${heroProduct?.slug ?? "skulltronix-skullkin"}`;
   const heroActionLabel = heroProduct?.metadata.heroCtaLabel ?? "View Product";
@@ -61,30 +55,15 @@ export default async function HomePage() {
         {/* ── Hero ── */}
         <section className="relative overflow-hidden border-b border-white/10">
           <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.28),_transparent_58%)]" />
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(255,120,60,0.16),_transparent_60%)] blur-3xl" />
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(255,120,60,0.20),_transparent_60%)] blur-3xl" />
+          <div className="absolute bottom-0 right-[10%] h-[60%] w-[40%] bg-[radial-gradient(ellipse_at_center,_rgba(255,90,31,0.22),_transparent_70%)] blur-3xl" />
 
           <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
-            <div className="grid items-center gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:gap-10">
-              {/* Hero image — shows first on mobile, second on desktop */}
-              <div className="relative order-first lg:order-last">
-                <div className="absolute inset-x-[12%] bottom-6 h-24 rounded-full bg-[#ff6d39]/30 blur-3xl" />
-                <div className="relative mx-auto max-w-[660px] overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(8,8,8,0.16))] p-4 shadow-[0_35px_100px_rgba(0,0,0,0.52)]">
-                  <div className="relative aspect-[4/5] max-h-[420px] overflow-hidden rounded-[28px] bg-[radial-gradient(circle_at_top,_rgba(255,119,54,0.14),_transparent_48%),linear-gradient(180deg,#081119,#040404)] sm:max-h-none">
-                    <Image
-                      src={heroImage}
-                      alt={`${heroProduct?.name ?? "Featured product"} animatronic product photo.`}
-                      fill
-                      priority
-                      className="object-cover object-center"
-                      sizes="(max-width: 1024px) 100vw, 56vw"
-                    />
-                  </div>
-                </div>
-              </div>
-
+            <div className="grid items-center gap-6 sm:grid-cols-[1fr_auto] lg:grid-cols-2 lg:gap-10">
               {/* Hero text */}
               <div className="relative z-10">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ffb089]">
+                <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#ffb089]">
+                  <span className="inline-block h-2 w-2 rounded-full bg-[#ff5a1f]" />
                   {heroProduct?.metadata.heroEyebrow ?? "Featured Animatronic"}
                 </p>
                 <h1 className="mt-4 max-w-[10ch] font-display text-5xl font-semibold tracking-[-0.06em] text-white sm:text-6xl">
@@ -97,9 +76,12 @@ export default async function HomePage() {
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                   <Link
                     href={heroHref}
-                    className="inline-flex items-center justify-center rounded-full bg-[#ff5a1f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#ff6d39]"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#ff5a1f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#ff6d39]"
                   >
                     {heroActionLabel}
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M3.5 8h9m0 0L9 4.5M12.5 8 9 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </Link>
                   <Link
                     href="/products"
@@ -114,22 +96,23 @@ export default async function HomePage() {
                     </span>
                   </span>
                 </div>
+              </div>
 
-                <p className="mt-5 max-w-xl text-sm leading-7 text-white/68">{heroSummary}</p>
-
-                {/* Highlights — inline on mobile, cards on sm+ */}
-                <p className="mt-5 text-sm text-white/72 sm:hidden">
-                  {heroHighlights.join(" · ")}
-                </p>
-                <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-3">
-                  {heroHighlights.map((item) => (
-                    <div
-                      key={item}
-                      className="rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/72 backdrop-blur-sm"
-                    >
-                      {item}
-                    </div>
-                  ))}
+              {/* Hero image — glassmorphism card */}
+              <div className="relative mx-auto sm:mx-0 lg:w-full">
+                <div className="absolute inset-x-[8%] bottom-4 h-28 rounded-full bg-[#ff6d39]/35 blur-3xl" />
+                <div className="relative w-[120px] sm:w-[180px] lg:w-full lg:max-w-[520px] overflow-hidden rounded-[24px] lg:rounded-[28px] border border-white/[0.12] bg-white/[0.06] backdrop-blur-xl p-2 lg:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)]">
+                  <div className="relative aspect-[3/4] lg:aspect-[4/5] overflow-hidden rounded-[20px] lg:rounded-[24px] bg-[radial-gradient(circle_at_top,_rgba(255,119,54,0.18),_transparent_52%),linear-gradient(180deg,#081119,#040404)]">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_80%,_rgba(255,90,31,0.12),_transparent_60%)]" />
+                    <Image
+                      src={heroImage}
+                      alt={`${heroProduct?.name ?? "Featured product"} animatronic product photo.`}
+                      fill
+                      priority
+                      className="object-cover object-center"
+                      sizes="(min-width: 1024px) 40vw, 180px"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -151,10 +134,10 @@ export default async function HomePage() {
                 </p>
               </div>
 
-              {/* Horizontal scroll on mobile, grid on sm+ */}
-              <div className="scrollbar-hide -mx-1 mt-6 flex gap-1 overflow-x-auto px-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:px-0 lg:grid-cols-7">
+              {/* Wrapping grid — 3 cols mobile, 4 cols sm, 7 cols lg */}
+              <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 lg:grid-cols-7">
                 {showcaseProducts.map((product, index) => (
-                  <div key={product.slug} className="flex-shrink-0 sm:flex-shrink">
+                  <div key={product.slug}>
                     <HomeProductChip product={product} priority={index < 3} />
                   </div>
                 ))}
