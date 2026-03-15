@@ -1,13 +1,20 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <main className="mx-auto max-w-[960px] px-4 py-20 sm:px-6 lg:px-8">
       <section className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8 text-center">

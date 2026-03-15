@@ -36,6 +36,13 @@
       "when": 1773515633698,
       "tag": "0004_strong_eddie_brock",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773546760896,
+      "tag": "0005_chemical_black_cat",
+      "breakpoints": true
     }
   ]
 }

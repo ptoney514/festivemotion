@@ -8,6 +8,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  index,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -50,13 +51,19 @@ export const accounts = pgTable(
   }),
 );
 
-export const sessions = pgTable("sessions", {
-  sessionToken: text("session_token").primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  expires: timestamp("expires", { mode: "date" }).notNull(),
-});
+export const sessions = pgTable(
+  "sessions",
+  {
+    sessionToken: text("session_token").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("sessions_user_id_idx").on(table.userId),
+  }),
+);
 
 export const verificationTokens = pgTable(
   "verification_tokens",
@@ -189,33 +196,45 @@ export const orders = pgTable(
   }),
 );
 
-export const orderItems = pgTable("order_items", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id")
-    .notNull()
-    .references(() => orders.id, { onDelete: "cascade" }),
-  configurationId: uuid("configuration_id").references(() => configurations.id, {
-    onDelete: "restrict",
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    configurationId: uuid("configuration_id").references(() => configurations.id, {
+      onDelete: "restrict",
+    }),
+    itemType: text("item_type").notNull(), // "configured" | "accessory"
+    label: text("label").notNull(),
+    slug: text("slug").notNull(),
+    unitPriceCents: integer("unit_price_cents").notNull(),
+    quantity: integer("quantity").notNull().default(1),
+    totalCents: integer("total_cents").notNull(),
+    metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    orderIdIdx: index("order_items_order_id_idx").on(table.orderId),
   }),
-  itemType: text("item_type").notNull(), // "configured" | "accessory"
-  label: text("label").notNull(),
-  slug: text("slug").notNull(),
-  unitPriceCents: integer("unit_price_cents").notNull(),
-  quantity: integer("quantity").notNull().default(1),
-  totalCents: integer("total_cents").notNull(),
-  metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+);
 
-export const orderEvents = pgTable("order_events", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id")
-    .notNull()
-    .references(() => orders.id, { onDelete: "cascade" }),
-  type: text("type").notNull(),
-  payload: jsonb("payload").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const orderEvents = pgTable(
+  "order_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    payload: jsonb("payload").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    orderIdIdx: index("order_events_order_id_idx").on(table.orderId),
+  }),
+);
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
