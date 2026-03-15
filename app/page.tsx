@@ -7,6 +7,8 @@ import { SiteHeader } from "@/components/site-header";
 import { formatCurrency } from "@/lib/format";
 import { getCatalogProducts } from "@/lib/catalog";
 
+export const revalidate = 3600;
+
 const venueNotes = [
   {
     title: "Haunted Attractions",
@@ -135,9 +137,8 @@ export default async function HomePage() {
                   </h2>
                 </div>
                 <p className="max-w-xl text-sm leading-7 text-white/58">
-                  This microsite is built for live demos. People can scan the entire line
-                  here, then tap into any product for the full detail and customization
-                  flow.
+                  Browse the complete product line, configure to your exact specs, and
+                  order directly.
                 </p>
               </div>
 

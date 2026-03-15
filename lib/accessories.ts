@@ -13,7 +13,7 @@ export const accessories: Accessory[] = [
     description:
       "Central hub that powers the prop and manages all input/output signals. Required for standalone operation without an external controller.",
     priceCents: 19500,
-    imageUrl: "/images/accessories/pcm.webp",
+    imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/DSC_8182-Edit.webp",
   },
   {
     slug: "motion-sensor-pir",
@@ -21,7 +21,7 @@ export const accessories: Accessory[] = [
     description:
       "Passive infrared sensor that triggers the prop when guests walk into range. Adjustable sensitivity and delay.",
     priceCents: 3500,
-    imageUrl: "/images/accessories/pir-sensor.webp",
+    imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/DSC_8115.webp",
   },
   {
     slug: "three-channel-dmx-controller",
@@ -29,7 +29,7 @@ export const accessories: Accessory[] = [
     description:
       "Route prop triggers into a larger DMX lighting or show-control rig. Three independently addressable relay channels.",
     priceCents: 7500,
-    imageUrl: "/images/accessories/dmx-controller.webp",
+    imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/IMG_3207-scaled.jpg",
   },
   {
     slug: "dmx-light",
@@ -37,7 +37,7 @@ export const accessories: Accessory[] = [
     description:
       "Sync lighting cues with the performance. Mounts directly to the prop or nearby rigging.",
     priceCents: 3500,
-    imageUrl: "/images/accessories/dmx-light.webp",
+    imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/DSC_8205-Edit.webp",
   },
   {
     slug: "two-channel-remote",
@@ -45,7 +45,7 @@ export const accessories: Accessory[] = [
     description:
       "Simple handheld trigger control. Press a button, the prop fires. Great for queue-line scare actors.",
     priceCents: 3500,
-    imageUrl: "/images/accessories/2ch-remote.webp",
+    imageUrl: "https://festivemotion.com/wp-content/uploads/2025/09/2-ch_wireless_remote-scaled.jpg",
   },
   {
     slug: "four-channel-remote",
@@ -53,7 +53,7 @@ export const accessories: Accessory[] = [
     description:
       "Expanded remote control for show operators. Four independent channels for multi-prop setups.",
     priceCents: 4500,
-    imageUrl: "/images/accessories/4ch-remote.webp",
+    imageUrl: "https://festivemotion.com/wp-content/uploads/2025/09/4-ch_wirelessremote-scaled.jpg",
   },
 ];
 

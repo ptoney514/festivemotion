@@ -143,8 +143,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                 Your payment went through. We’re finishing the order record.
               </h1>
               <p className="mt-5 text-sm leading-8 text-white/65">
-                Stripe has the checkout session, but the webhook may still be writing the
-                final order status into Neon. Refresh this page in a few seconds if the
+                Your order is being finalized. Refresh this page in a few seconds if the
                 summary doesn’t appear immediately.
               </p>
             </>

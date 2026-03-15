@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { getOrderById, getOrderBySessionId, getOrderItemsByOrderId, getConfigurationSnapshot, recordOrderEvent } from "@/lib/orders";
 import { orders } from "@/lib/schema";
 import { getStripe } from "@/lib/stripe";
+import * as Sentry from "@sentry/nextjs";
 
 export const runtime = "nodejs";
 
@@ -26,9 +27,9 @@ export async function POST(request: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET,
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Invalid signature." },
+      { error: "Invalid webhook signature." },
       { status: 400 },
     );
   }
@@ -44,9 +45,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true });
     }
 
+    // Idempotency guard — skip if already processed
+    if (orderRecord.order.status === "paid") {
+      return NextResponse.json({ received: true });
+    }
+
     const amountTotalCents = session.amount_total ?? 0;
     const nextStatus =
       amountTotalCents === orderRecord.order.amountTotalCents ? "paid" : "amount_mismatch";
+
+    if (nextStatus === "amount_mismatch") {
+      console.error(
+        `Amount mismatch for order ${orderRecord.order.id}: expected ${orderRecord.order.amountTotalCents}, got ${amountTotalCents}`,
+      );
+    }
 
     // Parse shipping address from Stripe metadata (backfill safety net)
     let shippingAddress = null;
@@ -71,7 +83,7 @@ export async function POST(request: Request) {
 
     await recordOrderEvent(orderRecord.order.id, event.type, event.data.object);
 
-    if (nextStatus === "paid") {
+    if (nextStatus === "paid" || nextStatus === "amount_mismatch") {
       const snapshot = getConfigurationSnapshot(orderRecord);
       const items = await getOrderItemsByOrderId(orderRecord.order.id);
       const customerEmail = session.customer_details?.email ?? null;
@@ -90,6 +102,7 @@ export async function POST(request: Request) {
           })),
         });
       } catch (err) {
+        Sentry.captureException(err);
         console.error("Store notification email failed:", err);
       }
 
@@ -109,6 +122,7 @@ export async function POST(request: Request) {
             })),
           });
         } catch (err) {
+          Sentry.captureException(err);
           console.error("Customer confirmation email failed:", err);
         }
       }

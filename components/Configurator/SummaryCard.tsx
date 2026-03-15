@@ -30,7 +30,7 @@ export function SummaryCard({
           Configured total
         </h2>
         <p className="text-sm leading-7 text-white/55">
-          Server-authoritative pricing is revalidated before checkout.
+          Final price confirmed at checkout.
         </p>
       </div>
 

@@ -4,6 +4,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getCatalogProducts } from "@/lib/catalog";
 
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Products | FestiveMotion",
   description: "Browse the FestiveMotion catalog and configure each product.",

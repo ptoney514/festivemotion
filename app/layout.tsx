@@ -21,7 +21,21 @@ export const metadata: Metadata = {
     template: "%s | FestiveMotion",
   },
   description:
-    "Modern storefront for FestiveMotion and SkullTronix products with Apple-style configuration flow.",
+    "Professional animatronics by FestiveMotion — configure and order commercial-grade skulls, pumpkins, and specialty props online.",
+  openGraph: {
+    title: "FestiveMotion — Professional Animatronics",
+    description:
+      "Configure and order commercial-grade animatronic performers for haunted attractions, escape rooms, and entertainment venues.",
+    url: "https://skulltronix.festivemotion.com",
+    siteName: "FestiveMotion",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FestiveMotion — Professional Animatronics",
+    description:
+      "Configure and order commercial-grade animatronic performers for haunted attractions, escape rooms, and entertainment venues.",
+  },
 };
 
 export default function RootLayout({

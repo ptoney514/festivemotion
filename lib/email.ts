@@ -1,5 +1,14 @@
 import "server-only";
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 type OrderEmailItem = {
   label: string;
   quantity: number;
@@ -180,9 +189,9 @@ function buildCustomerHtml(args: SendCustomerConfirmationEmailArgs): string {
     ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
         <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Shipping Address</p>
         <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">
-          ${args.shippingAddress.street}${args.shippingAddress.apt ? `<br>${args.shippingAddress.apt}` : ""}<br>
-          ${args.shippingAddress.city}, ${args.shippingAddress.state} ${args.shippingAddress.zip}<br>
-          ${args.shippingAddress.country}
+          ${escapeHtml(args.shippingAddress.street)}${args.shippingAddress.apt ? `<br>${escapeHtml(args.shippingAddress.apt)}` : ""}<br>
+          ${escapeHtml(args.shippingAddress.city)}, ${escapeHtml(args.shippingAddress.state)} ${escapeHtml(args.shippingAddress.zip)}<br>
+          ${escapeHtml(args.shippingAddress.country)}
         </p>
       </div>`
     : "";
@@ -200,7 +209,7 @@ function buildCustomerHtml(args: SendCustomerConfirmationEmailArgs): string {
 
     <!-- Greeting -->
     <div style="padding:32px 0 24px">
-      <p style="margin:0;font-size:16px;color:#fff">${args.customerName ? `Hi ${args.customerName},` : "Hi there,"}</p>
+      <p style="margin:0;font-size:16px;color:#fff">${args.customerName ? `Hi ${escapeHtml(args.customerName)},` : "Hi there,"}</p>
       <p style="margin:12px 0 0;font-size:14px;color:#aaa;line-height:1.6">Thank you for your order! We're getting things ready on our end. Here's a summary of what you ordered.</p>
     </div>
 

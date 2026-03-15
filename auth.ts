@@ -4,8 +4,11 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "@/lib/db";
 import { users, accounts, sessions, verificationTokens } from "@/lib/schema";
 
+const db = getDb();
+if (!db) throw new Error("Database connection not available — check DATABASE_URL");
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(getDb()!, {
+  adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
     sessionsTable: sessions,
@@ -13,7 +16,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   }),
   providers: [
     Resend({
-      from: "auth@festivemotion.com",
+      from: process.env.EMAIL_FROM ?? "auth@smallhr.app",
       apiKey: process.env.AUTH_RESEND_KEY,
     }),
   ],

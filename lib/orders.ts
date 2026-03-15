@@ -135,6 +135,11 @@ export type OrderItemSummary = {
 };
 
 export async function getSuccessSummary(sessionId: string) {
+  const STRIPE_SESSION_RE = /^cs_(test|live)_[a-zA-Z0-9]+$/;
+  if (!sessionId.startsWith("mock_") && !STRIPE_SESSION_RE.test(sessionId)) {
+    return { state: "not_found" as const };
+  }
+
   const fromDatabase = await getOrderBySessionId(sessionId);
 
   if (fromDatabase) {

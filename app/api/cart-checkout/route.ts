@@ -9,6 +9,7 @@ import { calculatePrice } from "@/lib/pricing";
 import { configurations, orderItems, orders } from "@/lib/schema";
 import { getSiteUrl, getStripe } from "@/lib/stripe";
 import { cartCheckoutRequestSchema } from "@/lib/validators";
+import * as Sentry from "@sentry/nextjs";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -211,10 +212,11 @@ export async function POST(request: Request) {
 
   if (stripe) {
     try {
-      const session = await stripe.checkout.sessions.create({
+      const session = await stripe.checkout.sessions.create(
+        {
         mode: "payment",
-        success_url: `${getSiteUrl(request)}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${getSiteUrl(request)}/cancel`,
+        success_url: `${getSiteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${getSiteUrl()}/cancel`,
         line_items: stripeLineItems,
         ...(stripeCustomerId
           ? { customer: stripeCustomerId }
@@ -225,7 +227,9 @@ export async function POST(request: Request) {
           customerPhone: customerPhone ?? "",
           shippingAddress: shippingAddress ? JSON.stringify(shippingAddress) : "",
         },
-      });
+        },
+        { idempotencyKey: `checkout-${order.id}` },
+      );
 
       await db
         .update(orders)
@@ -247,6 +251,8 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ url: session.url });
     } catch (error) {
+      Sentry.captureException(error);
+
       await db
         .update(orders)
         .set({ status: "checkout_failed" })
@@ -264,6 +270,13 @@ export async function POST(request: Request) {
   }
 
   // Mock checkout fallback when Stripe is unavailable
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 },
+    );
+  }
+
   const mockSessionId = `mock_${order.id}`;
 
   await db
@@ -277,5 +290,5 @@ export async function POST(request: Request) {
     itemCount: orderItemValues.length,
   });
 
-  return NextResponse.json({ url: `${getSiteUrl(request)}/success?session_id=${mockSessionId}` });
+  return NextResponse.json({ url: `${getSiteUrl()}/success?session_id=${mockSessionId}` });
 }

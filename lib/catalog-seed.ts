@@ -306,7 +306,7 @@ function createSkullTierProduct({
       note: "This page locks the motion package. If you need a different movement level, switch to the other skull models above instead of changing it inside the configurator.",
       pricing: createSkullPricing(basePriceCents),
       relatedProductSlugs: createSkullRelatedProductSlugs(slug),
-      shippingNote: "Product total only at checkout for MVP. Shipping is coordinated after purchase.",
+      shippingNote: "Shipping is calculated after purchase and coordinated with our team.",
       specs,
       supportItems: commonSupportItems,
       featureCards,
@@ -429,7 +429,7 @@ function createCommonSkullGroups(): CatalogOptionGroup[] {
         helperText:
           "Premium routines are added to the included set. If you need substitutions, the team can handle that offline.",
         whyItMatters:
-          "This is where the Apple-style configurator becomes genuinely useful: buyers can tailor content without losing price control.",
+          "Customize every detail to match your venue's theme and budget.",
       },
       options: [
         {
@@ -729,7 +729,7 @@ export const catalogSeed: CatalogProduct[] = [
       ],
       note: "All Skullkin builds ship with the four included routines already loaded.",
       leadTime: "A character-driven skull build for haunts and seasonal installations",
-      shippingNote: "Product total only at checkout for MVP. Shipping is coordinated after purchase.",
+      shippingNote: "Shipping is calculated after purchase and coordinated with our team.",
       supportItems: commonSupportItems,
       relatedProductSlugs: [
         "skulltronix-skull-bare-bones",
@@ -773,7 +773,7 @@ export const catalogSeed: CatalogProduct[] = [
     shortDescription:
       "A high-impact Halloween tailgate centerpiece with the same customizable motion platform behind it.",
     description:
-      "The Trunk or Treat Skull is a simpler single-step themed build: pick the finish, then layer in show-control extras and additional routines. It fits the MVP perfectly because it stays easy to browse on mobile while still proving the pricing engine.",
+      "The Trunk or Treat Skull is a simpler single-step themed build: pick the finish, then layer in show-control extras and additional routines.",
     basePriceCents: 149500,
     imageUrl:
       "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-1.webp",
@@ -1010,7 +1010,7 @@ export const catalogSeed: CatalogProduct[] = [
         metadata: {
           helperText: "The standard controller is enough for demos. DMX is better for coordinated scenes.",
           whyItMatters:
-            "This mirrors the Apple-style primary configuration decision: simple buyer language, clear upgrade value, and immediate pricing feedback.",
+            "Easily configure the perfect performer for your venue's needs.",
         },
         options: [
           {
@@ -1111,7 +1111,7 @@ export const catalogSeed: CatalogProduct[] = [
     shortDescription:
       "A synchronized triple-pumpkin setup for buyers who want more spectacle per install.",
     description:
-      "The trio takes the same visual idea as the single Dancing Pumpkin and stretches it into a larger scene piece. For MVP it stays intentionally simple: choose the show-control package and the transport extras, then check out.",
+      "The trio takes the same visual idea as the single Dancing Pumpkin and stretches it into a larger scene piece. Choose the show-control package and the transport extras, then check out.",
     basePriceCents: 377500,
     imageUrl:
       "https://festivemotion.com/wp-content/uploads/2025/08/Pumpkin-Trio.webp",

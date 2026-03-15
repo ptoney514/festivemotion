@@ -10,6 +10,13 @@ import {
   getRelatedProducts,
 } from "@/lib/catalog";
 
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const products = await getCatalogProducts();
+  return products.map((product) => ({ slug: product.slug }));
+}
+
 type ProductPageProps = {
   params: Promise<{
     slug: string;
@@ -31,6 +38,11 @@ export async function generateMetadata({
   return {
     title: `${product.name} | FestiveMotion`,
     description: product.shortDescription,
+    openGraph: {
+      title: `${product.name} | FestiveMotion`,
+      description: product.shortDescription,
+      images: product.imageUrl ? [{ url: product.imageUrl }] : undefined,
+    },
   };
 }
 

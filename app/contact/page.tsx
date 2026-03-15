@@ -22,7 +22,7 @@ const faqs = [
   {
     question: "What warranty do your products carry?",
     answer:
-      "All FestiveMotion animatronics include a 1-year limited warranty covering manufacturing defects in mechanical and electronic components. Extended warranty plans are available at checkout.",
+      "All FestiveMotion animatronics include a 2-year warranty covering manufacturing defects in mechanical and electronic components. Extended warranty plans are available at checkout.",
   },
   {
     question: "Do you ship internationally?",

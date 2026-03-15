@@ -25,8 +25,9 @@ const footerColumns = [
     title: "Company",
     items: [
       { href: "/why-festivemotion", label: "About FestiveMotion" },
-      { href: "https://festivemotion.com", label: "Current Site" },
-      { href: "https://www.apple.com/shop/buy-mac/macbook-air", label: "UX Reference" },
+      { href: "/contact", label: "Contact" },
+      { href: "https://festivemotion.com/privacy-policy/", label: "Privacy Policy" },
+      { href: "https://festivemotion.com/terms/", label: "Terms" },
     ],
   },
 ];
@@ -62,10 +63,9 @@ export function SiteFooter() {
             className="h-[48px] w-auto"
           />
           <p className="max-w-xl text-sm leading-7 text-white/65">
-            FestiveMotion builds commercial animatronics for haunted attractions,
-            seasonal retail, immersive installations, and trade show environments.
-            This rebuild replaces a WooCommerce-heavy experience with a cleaner,
-            mobile-friendly configuration flow.
+            Skulltronix, a Festive Motion company, specializes in professional
+            animatronic skull performers for haunted attractions, escape rooms, and
+            entertainment venues.
           </p>
           <div className="flex flex-wrap items-center gap-3">
             {socialLinks.map((link) => (
