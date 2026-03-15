@@ -1,10 +1,11 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { sendOrderEmail } from "@/lib/email";
+import { sendCustomerConfirmationEmail, sendOrderEmail } from "@/lib/email";
 import { getDb } from "@/lib/db";
 import { getOrderById, getOrderBySessionId, getOrderItemsByOrderId, getConfigurationSnapshot, recordOrderEvent } from "@/lib/orders";
 import { orders } from "@/lib/schema";
 import { getStripe } from "@/lib/stripe";
+import * as Sentry from "@sentry/nextjs";
 
 export const runtime = "nodejs";
 
@@ -26,9 +27,9 @@ export async function POST(request: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET,
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Invalid signature." },
+      { error: "Invalid webhook signature." },
       { status: 400 },
     );
   }
@@ -44,9 +45,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true });
     }
 
+    // Idempotency guard — skip if already processed
+    if (orderRecord.order.status === "paid") {
+      return NextResponse.json({ received: true });
+    }
+
     const amountTotalCents = session.amount_total ?? 0;
     const nextStatus =
       amountTotalCents === orderRecord.order.amountTotalCents ? "paid" : "amount_mismatch";
+
+    if (nextStatus === "amount_mismatch") {
+      console.error(
+        `Amount mismatch for order ${orderRecord.order.id}: expected ${orderRecord.order.amountTotalCents}, got ${amountTotalCents}`,
+      );
+    }
+
+    // Parse shipping address from Stripe metadata (backfill safety net)
+    let shippingAddress = null;
+    try {
+      const raw = session.metadata?.shippingAddress;
+      if (raw) shippingAddress = JSON.parse(raw);
+    } catch { /* ignore malformed JSON */ }
 
     await db
       .update(orders)
@@ -56,25 +75,57 @@ export async function POST(request: Request) {
         stripePaymentIntentId:
           typeof session.payment_intent === "string" ? session.payment_intent : null,
         customerEmail: session.customer_details?.email ?? null,
+        customerName: session.metadata?.customerName || null,
+        customerPhone: session.metadata?.customerPhone || null,
+        shippingAddress,
       })
       .where(eq(orders.id, orderRecord.order.id));
 
     await recordOrderEvent(orderRecord.order.id, event.type, event.data.object);
 
-    if (nextStatus === "paid") {
+    if (nextStatus === "paid" || nextStatus === "amount_mismatch") {
       const snapshot = getConfigurationSnapshot(orderRecord);
       const items = await getOrderItemsByOrderId(orderRecord.order.id);
-      await sendOrderEmail({
-        orderId: orderRecord.order.id,
-        amountTotalCents,
-        customerEmail: session.customer_details?.email ?? null,
-        productName: snapshot?.productName ?? orderRecord.product?.name ?? "FestiveMotion order",
-        items: items.map((i) => ({
-          label: i.label,
-          quantity: i.quantity,
-          totalCents: i.totalCents,
-        })),
-      });
+      const customerEmail = session.customer_details?.email ?? null;
+
+      // Store owner notification — failure doesn't block customer email
+      try {
+        await sendOrderEmail({
+          orderId: orderRecord.order.id,
+          amountTotalCents,
+          customerEmail,
+          productName: snapshot?.productName ?? orderRecord.product?.name ?? "FestiveMotion order",
+          items: items.map((i) => ({
+            label: i.label,
+            quantity: i.quantity,
+            totalCents: i.totalCents,
+          })),
+        });
+      } catch (err) {
+        Sentry.captureException(err);
+        console.error("Store notification email failed:", err);
+      }
+
+      // Customer confirmation email — failure doesn't block webhook response
+      if (customerEmail) {
+        try {
+          await sendCustomerConfirmationEmail({
+            orderId: orderRecord.order.id,
+            amountTotalCents,
+            customerEmail,
+            customerName: session.metadata?.customerName || null,
+            shippingAddress,
+            items: items.map((i) => ({
+              label: i.label,
+              quantity: i.quantity,
+              totalCents: i.totalCents,
+            })),
+          });
+        } catch (err) {
+          Sentry.captureException(err);
+          console.error("Customer confirmation email failed:", err);
+        }
+      }
     }
   } else if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object;

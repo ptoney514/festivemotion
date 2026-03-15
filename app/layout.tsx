@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
-import { AuthProvider } from "@/lib/auth-context";
+import { SessionProvider } from "@/components/session-provider";
 import { CartDrawer } from "@/components/cart-drawer";
 import "./globals.css";
 
@@ -21,7 +21,21 @@ export const metadata: Metadata = {
     template: "%s | FestiveMotion",
   },
   description:
-    "Modern storefront for FestiveMotion and SkullTronix products with Apple-style configuration flow.",
+    "Professional animatronics by FestiveMotion — configure and order commercial-grade skulls, pumpkins, and specialty props online.",
+  openGraph: {
+    title: "FestiveMotion — Professional Animatronics",
+    description:
+      "Configure and order commercial-grade animatronic performers for haunted attractions, escape rooms, and entertainment venues.",
+    url: "https://skulltronix.festivemotion.com",
+    siteName: "FestiveMotion",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FestiveMotion — Professional Animatronics",
+    description:
+      "Configure and order commercial-grade animatronic performers for haunted attractions, escape rooms, and entertainment venues.",
+  },
 };
 
 export default function RootLayout({
@@ -32,12 +46,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${oswald.variable} antialiased`}>
-        <CartProvider>
-          <AuthProvider>
+        <SessionProvider>
+          <CartProvider>
             {children}
             <CartDrawer />
-          </AuthProvider>
-        </CartProvider>
+          </CartProvider>
+        </SessionProvider>
       </body>
     </html>
   );

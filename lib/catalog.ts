@@ -1,6 +1,7 @@
 import "server-only";
 import { asc, eq, inArray } from "drizzle-orm";
 import { cache } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { getDb } from "@/lib/db";
 import { optionGroups, options, products } from "@/lib/schema";
 import { catalogSeed } from "@/lib/catalog-seed";
@@ -114,6 +115,7 @@ async function loadCatalogFromDatabase() {
       })),
     );
   } catch (error) {
+    Sentry.captureException(error);
     console.warn("Falling back to local catalog seed because the database lookup failed.", error);
     return null;
   }

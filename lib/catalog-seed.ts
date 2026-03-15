@@ -1,4 +1,8 @@
-import type { CatalogOptionGroup, CatalogProduct } from "@/lib/types";
+import type {
+  CatalogOptionGroup,
+  CatalogProduct,
+  ProductCapability,
+} from "@/lib/types";
 
 const commonSupportItems = [
   { title: "Warranty", subtitle: "2 years of coverage" },
@@ -12,6 +16,312 @@ const commonRoutineDefaults = [
   "spooky-scary-skeletons",
   "i-like-nightmares",
 ];
+
+const skullLineupFamily = "skulltronix-skull-lineup";
+const whiteSkullImage =
+  "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp";
+
+const skullStyleImages = {
+  basic: whiteSkullImage,
+  painted: "https://festivemotion.com/wp-content/uploads/2025/08/Painted.webp",
+  witch: "https://festivemotion.com/wp-content/uploads/2025/08/Witch-scaled.webp",
+  pirate: "https://festivemotion.com/wp-content/uploads/2025/08/Pirates.webp",
+  clown: "https://festivemotion.com/wp-content/uploads/2025/08/Clown-600x900.webp",
+  scarecrow: "https://festivemotion.com/wp-content/uploads/2025/08/Scarecrows-1-600x900.webp",
+  vampire: "https://festivemotion.com/wp-content/uploads/2025/08/Vampires.png",
+} as const;
+
+const skullGallery = [
+  {
+    type: "image" as const,
+    src: whiteSkullImage,
+    alt: "Front hero view of the SkullTronix Skull animatronic.",
+  },
+  {
+    type: "image" as const,
+    src: "https://festivemotion.com/wp-content/uploads/2025/08/DSC_8232-Edit.webp",
+    alt: "Close detail shot of the SkullTronix Skull.",
+  },
+  {
+    type: "image" as const,
+    src: "https://festivemotion.com/wp-content/uploads/2025/08/DSC_8115.webp",
+    alt: "Display photo showing the SkullTronix Skull in a production setting.",
+  },
+];
+
+type SkullTierKey = "bare-bones" | "plus" | "pro";
+
+const skullTierCapabilities: Record<SkullTierKey, ProductCapability[]> = {
+  "bare-bones": [
+    { label: "Jaw movement", included: true },
+    { label: "Glowing eyes", included: true },
+    { label: "Eye movement", included: false },
+    { label: "Head movement", included: false },
+  ],
+  plus: [
+    { label: "Jaw movement", included: true },
+    { label: "Glowing eyes", included: true },
+    { label: "Eye movement", included: true },
+    { label: "Head movement", included: false },
+  ],
+  pro: [
+    { label: "Jaw movement", included: true },
+    { label: "Glowing eyes", included: true },
+    { label: "Eye movement", included: true },
+    { label: "Head movement", included: true },
+  ],
+};
+
+const skullTierSlugs = [
+  "skulltronix-skull-bare-bones",
+  "skulltronix-skull-plus",
+  "skulltronix-skull",
+];
+
+const skullVariantOffsets: Record<string, Record<string, number>> = {
+  basic: {
+    "wood-block": 0,
+    "black-wood-base": 7500,
+    "3d-trophy-base": 7500,
+    "skeleton-torso": 7500,
+  },
+  painted: {
+    "wood-block": 10000,
+    "black-wood-base": 16000,
+    "3d-trophy-base": 17500,
+    "skeleton-torso": 17500,
+  },
+  witch: {
+    "wood-block": 10000,
+    "black-wood-base": 16000,
+    "3d-trophy-base": 17500,
+    "skeleton-torso": 17500,
+  },
+  pirate: {
+    "wood-block": 10000,
+    "black-wood-base": 16000,
+    "3d-trophy-base": 17500,
+    "skeleton-torso": 17500,
+  },
+  clown: {
+    "wood-block": 10000,
+    "black-wood-base": 16000,
+    "3d-trophy-base": 17500,
+    "skeleton-torso": 17500,
+  },
+  scarecrow: {
+    "wood-block": 10000,
+    "black-wood-base": 16000,
+    "3d-trophy-base": 17500,
+    "skeleton-torso": 17500,
+  },
+  vampire: {
+    "wood-block": 10000,
+    "black-wood-base": 16000,
+    "3d-trophy-base": 17500,
+    "skeleton-torso": 17500,
+  },
+};
+
+function createSkullCharacterGroup(): CatalogOptionGroup {
+  return {
+    slug: "style",
+    name: "Character",
+    description: "Choose the character configuration for your skull.",
+    required: true,
+    selectionType: "single",
+    sortOrder: 10,
+    metadata: {
+      helperText: "Every skull model supports the same white and themed character finishes.",
+      whyItMatters:
+        "Character changes the look on stage, while Bare Bones, Plus, and Pro determine how much motion the skull can perform.",
+    },
+    options: [
+      {
+        slug: "basic",
+        label: "Classic White",
+        priceDeltaCents: 0,
+        sortOrder: 10,
+        isDefault: true,
+        description: "Clean white skull finish.",
+      },
+      {
+        slug: "painted",
+        label: "Painted",
+        priceDeltaCents: 0,
+        sortOrder: 20,
+        description: "Weathered painted finish for a more aged look.",
+      },
+      {
+        slug: "witch",
+        label: "Witch",
+        priceDeltaCents: 0,
+        sortOrder: 30,
+        description: "Witch character finish with seasonal styling.",
+      },
+      {
+        slug: "pirate",
+        label: "Pirate",
+        priceDeltaCents: 0,
+        sortOrder: 40,
+        description: "Pirate character finish for nautical scenes.",
+      },
+      {
+        slug: "clown",
+        label: "Clown",
+        priceDeltaCents: 0,
+        sortOrder: 50,
+        description: "Clown finish for carnival and freakshow sets.",
+      },
+      {
+        slug: "scarecrow",
+        label: "Scarecrow",
+        priceDeltaCents: 0,
+        sortOrder: 60,
+        description: "Harvest horror styling with rustic texture.",
+      },
+      {
+        slug: "vampire",
+        label: "Vampire",
+        priceDeltaCents: 0,
+        sortOrder: 70,
+        description: "Vampire finish for gothic and castle scenes.",
+      },
+    ],
+  };
+}
+
+function createSkullBaseGroup(): CatalogOptionGroup {
+  return {
+    slug: "base",
+    name: "Base",
+    description: "Pick the display base that matches the installation.",
+    required: true,
+    selectionType: "single",
+    sortOrder: 20,
+    metadata: {
+      helperText:
+        "The same mounting options stay available across Bare Bones, Plus, and Pro builds.",
+      whyItMatters:
+        "The motion package sets the performance level. The base changes how the final piece presents in your scene or booth.",
+    },
+    options: [
+      {
+        slug: "wood-block",
+        label: "Wood Block",
+        priceDeltaCents: 0,
+        sortOrder: 10,
+        isDefault: true,
+        description: "Standard tabletop presentation.",
+      },
+      {
+        slug: "black-wood-base",
+        label: "Black Wood Base",
+        priceDeltaCents: 0,
+        sortOrder: 20,
+        description: "A cleaner pedestal look for polished installs.",
+      },
+      {
+        slug: "3d-trophy-base",
+        label: "3D Trophy Base",
+        priceDeltaCents: 0,
+        sortOrder: 30,
+        description: "Decorative display base with more visual presence.",
+      },
+      {
+        slug: "skeleton-torso",
+        label: "Skeleton Torso",
+        priceDeltaCents: 0,
+        sortOrder: 40,
+        description: "Theatrical mount for fuller scene dressing.",
+      },
+    ],
+  };
+}
+
+function createSkullPricing(basePriceCents: number) {
+  return {
+    variantGroups: ["style", "base"],
+    variants: Object.entries(skullVariantOffsets).flatMap(([style, baseOffsets]) =>
+      Object.entries(baseOffsets).map(([base, priceOffset]) => ({
+        match: { style, base },
+        priceCents: basePriceCents + priceOffset,
+        imageUrl: skullStyleImages[style as keyof typeof skullStyleImages],
+      })),
+    ),
+  };
+}
+
+function createSkullRelatedProductSlugs(currentSlug: string) {
+  return [...skullTierSlugs.filter((slug) => slug !== currentSlug), "skulltronix-skullkin"];
+}
+
+function createSkullTierProduct({
+  slug,
+  name,
+  tier,
+  tierRank,
+  basePriceCents,
+  shortDescription,
+  description,
+  heroSummary,
+  leadTime,
+  featureCards,
+  specs,
+}: {
+  slug: string;
+  name: string;
+  tier: string;
+  tierRank: number;
+  basePriceCents: number;
+  shortDescription: string;
+  description: string;
+  heroSummary: string;
+  leadTime: string;
+  featureCards: CatalogProduct["metadata"]["featureCards"];
+  specs: string[];
+}) {
+  const tierKey = slug.includes("bare-bones")
+    ? "bare-bones"
+    : slug.includes("plus")
+      ? "plus"
+      : "pro";
+
+  return {
+    slug,
+    name,
+    shortDescription,
+    description,
+    basePriceCents,
+    imageUrl: whiteSkullImage,
+    active: true,
+    metadata: {
+      capabilities: skullTierCapabilities[tierKey],
+      category: "Skull Models",
+      family: skullLineupFamily,
+      gallery: skullGallery,
+      heroEyebrow: "Skull Model",
+      heroSummary,
+      leadTime,
+      note: "This page locks the motion package. If you need a different movement level, switch to the other skull models above instead of changing it inside the configurator.",
+      pricing: createSkullPricing(basePriceCents),
+      relatedProductSlugs: createSkullRelatedProductSlugs(slug),
+      shippingNote: "Shipping is calculated after purchase and coordinated with our team.",
+      specs,
+      supportItems: commonSupportItems,
+      featureCards,
+      inTheBox: [
+        `${name} prop`,
+        "Wood block base by default",
+        "Power control module",
+        "Speaker and standard routine pack",
+      ],
+      tier,
+      tierRank,
+    },
+    optionGroups: [createSkullCharacterGroup(), createSkullBaseGroup(), ...createCommonSkullGroups()],
+  };
+}
 
 function createCommonSkullGroups(): CatalogOptionGroup[] {
   return [
@@ -119,7 +429,7 @@ function createCommonSkullGroups(): CatalogOptionGroup[] {
         helperText:
           "Premium routines are added to the included set. If you need substitutions, the team can handle that offline.",
         whyItMatters:
-          "This is where the Apple-style configurator becomes genuinely useful: buyers can tailor content without losing price control.",
+          "Customize every detail to match your venue's theme and budget.",
       },
       options: [
         {
@@ -236,309 +546,126 @@ function createCommonSkullGroups(): CatalogOptionGroup[] {
 }
 
 export const catalogSeed: CatalogProduct[] = [
-  {
-    slug: "skulltronix-skull",
-    name: "SkullTronix Skull",
+  createSkullTierProduct({
+    slug: "skulltronix-skull-bare-bones",
+    name: "SkullTronix Skull Bare Bones",
+    tier: "Bare Bones",
+    tierRank: 1,
+    basePriceCents: 54900,
     shortDescription:
-      "The flagship programmable skull performer for haunted attractions, escape rooms, and trade show demos.",
+      "Entry-level skull build with jaw movement and glowing eyes for budget-conscious installs.",
     description:
-      "The SkullTronix Skull is a commercial-grade animatronic centerpiece with lifelike motion, glowing eyes, and swappable character finishes. It keeps the current FestiveMotion product logic but presents it in a cleaner Apple-style configuration flow.",
-    basePriceCents: 139500,
-    imageUrl:
-      "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp",
-    active: true,
-    metadata: {
-      category: "Arts & Entertainment",
-      heroEyebrow: "Flagship Performer",
-      heroSummary:
-        "Build the signature SkullTronix rig with the right finish, base, and show-control extras for your attraction.",
-      gallery: [
-        {
-          type: "image",
-          src: "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp",
-          alt: "Front hero view of the SkullTronix Skull animatronic.",
-        },
-        {
-          type: "image",
-          src: "https://festivemotion.com/wp-content/uploads/2025/08/DSC_8232-Edit.webp",
-          alt: "Close detail shot of the SkullTronix Skull.",
-        },
-        {
-          type: "image",
-          src: "https://festivemotion.com/wp-content/uploads/2025/08/DSC_8115.webp",
-          alt: "Display photo showing the SkullTronix Skull in a production setting.",
-        },
-      ],
-      featureCards: [
-        {
-          eyebrow: "Performance",
-          title: "Lifelike motion",
-          description:
-            "Jaw and articulated neck movement turn the skull into a true performer rather than a static prop.",
-        },
-        {
-          eyebrow: "Show impact",
-          title: "Character-ready finishes",
-          description:
-            "Swap between clean skull and themed paint variants without changing the purchase flow.",
-        },
-        {
-          eyebrow: "Operations",
-          title: "Built for repeat use",
-          description:
-            "Pre-calibrated, durable, and easy to integrate into queue lines, trade shows, or permanent attractions.",
-        },
-      ],
-      specs: [
-        "3D-printed commercial construction",
-        "Moving jaw and fully articulated neck",
-        "LED eyes with power control module and speaker included",
-        "Approx. 8 x 8 x 11.5 inches / 6.28 lbs",
-      ],
-      inTheBox: [
-        "SkullTronix Skull prop",
-        "Wood block base by default",
-        "Power control module",
-        "Speaker and standard routine pack",
-      ],
-      note: "If you need the included routines swapped for custom selections, the team can handle that as an offline request.",
-      leadTime: "Configured for commercial venues and trade show demos",
-      shippingNote: "Product total only at checkout for MVP. Shipping is coordinated after purchase.",
-      supportItems: commonSupportItems,
-      relatedProductSlugs: [
-        "skulltronix-skullkin",
-        "skulltronix-trunk-or-treat-skull",
-        "skulltronix-dancing-pumpkins-trio",
-      ],
-      pricing: {
-        variantGroups: ["style", "base"],
-        variants: [
-          {
-            match: { style: "basic", base: "wood-block" },
-            priceCents: 139500,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp",
-          },
-          {
-            match: { style: "basic", base: "black-wood-base" },
-            priceCents: 147000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp",
-          },
-          {
-            match: { style: "basic", base: "3d-trophy-base" },
-            priceCents: 147000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp",
-          },
-          {
-            match: { style: "basic", base: "skeleton-torso" },
-            priceCents: 147000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-2-600x900.webp",
-          },
-          {
-            match: { style: "painted", base: "wood-block" },
-            priceCents: 149500,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Painted.webp",
-          },
-          {
-            match: { style: "painted", base: "black-wood-base" },
-            priceCents: 155500,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Painted.webp",
-          },
-          {
-            match: { style: "painted", base: "3d-trophy-base" },
-            priceCents: 157000,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Painted.webp",
-          },
-          {
-            match: { style: "painted", base: "skeleton-torso" },
-            priceCents: 157000,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Painted.webp",
-          },
-          {
-            match: { style: "witch", base: "wood-block" },
-            priceCents: 149500,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Witch-scaled.webp",
-          },
-          {
-            match: { style: "witch", base: "black-wood-base" },
-            priceCents: 155500,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Witch-scaled.webp",
-          },
-          {
-            match: { style: "witch", base: "3d-trophy-base" },
-            priceCents: 157000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Witch-scaled.webp",
-          },
-          {
-            match: { style: "witch", base: "skeleton-torso" },
-            priceCents: 157000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Witch-scaled.webp",
-          },
-          {
-            match: { style: "pirate", base: "wood-block" },
-            priceCents: 149500,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Pirates.webp",
-          },
-          {
-            match: { style: "pirate", base: "black-wood-base" },
-            priceCents: 155500,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Pirates.webp",
-          },
-          {
-            match: { style: "pirate", base: "3d-trophy-base" },
-            priceCents: 157000,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Pirates.webp",
-          },
-          {
-            match: { style: "pirate", base: "skeleton-torso" },
-            priceCents: 157000,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Pirates.webp",
-          },
-          {
-            match: { style: "clown", base: "wood-block" },
-            priceCents: 149500,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Clown-600x900.webp",
-          },
-          {
-            match: { style: "clown", base: "black-wood-base" },
-            priceCents: 155500,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Clown-600x900.webp",
-          },
-          {
-            match: { style: "clown", base: "3d-trophy-base" },
-            priceCents: 157000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Clown-600x900.webp",
-          },
-          {
-            match: { style: "clown", base: "skeleton-torso" },
-            priceCents: 157000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Clown-600x900.webp",
-          },
-          {
-            match: { style: "scarecrow", base: "wood-block" },
-            priceCents: 149500,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Scarecrows-1-600x900.webp",
-          },
-          {
-            match: { style: "scarecrow", base: "black-wood-base" },
-            priceCents: 155500,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Scarecrows-1-600x900.webp",
-          },
-          {
-            match: { style: "scarecrow", base: "3d-trophy-base" },
-            priceCents: 157000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Scarecrows-1-600x900.webp",
-          },
-          {
-            match: { style: "scarecrow", base: "skeleton-torso" },
-            priceCents: 157000,
-            imageUrl:
-              "https://festivemotion.com/wp-content/uploads/2025/08/Scarecrows-1-600x900.webp",
-          },
-          {
-            match: { style: "vampire", base: "wood-block" },
-            priceCents: 149500,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Vampires.png",
-          },
-          {
-            match: { style: "vampire", base: "black-wood-base" },
-            priceCents: 155500,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Vampires.png",
-          },
-          {
-            match: { style: "vampire", base: "3d-trophy-base" },
-            priceCents: 157000,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Vampires.png",
-          },
-          {
-            match: { style: "vampire", base: "skeleton-torso" },
-            priceCents: 157000,
-            imageUrl: "https://festivemotion.com/wp-content/uploads/2025/08/Vampires.png",
-          },
-        ],
-      },
-    },
-    optionGroups: [
+      "Bare Bones is the entry point into the SkullTronix skull lineup. It keeps the animated jaw, glowing eyes, and the full character, base, routine, and add-on menu, but skips eye and neck articulation.",
+    heroSummary:
+      "Start with the most affordable SkullTronix motion package, then choose your character, base, routines, and control extras.",
+    leadTime: "Entry-level skull build for haunts, counters, and compact demos",
+    featureCards: [
       {
-        slug: "style",
-        name: "Style",
-        description: "Choose the character finish that fits your attraction.",
-        required: true,
-        selectionType: "single",
-        sortOrder: 10,
-        metadata: {
-          helperText: "SkullTronix supports a clean skull or themed painted characters.",
-          whyItMatters:
-            "This choice drives the personality of the piece and changes the hero image on the configurator.",
-        },
-        options: [
-          { slug: "basic", label: "Basic", priceDeltaCents: 0, sortOrder: 10, isDefault: true },
-          { slug: "painted", label: "Painted", priceDeltaCents: 0, sortOrder: 20 },
-          { slug: "witch", label: "Witch", priceDeltaCents: 0, sortOrder: 30 },
-          { slug: "pirate", label: "Pirate", priceDeltaCents: 0, sortOrder: 40 },
-          { slug: "clown", label: "Clown", priceDeltaCents: 0, sortOrder: 50 },
-          { slug: "scarecrow", label: "Scarecrow", priceDeltaCents: 0, sortOrder: 60 },
-          { slug: "vampire", label: "Vampire", priceDeltaCents: 0, sortOrder: 70 },
-        ],
+        eyebrow: "Motion package",
+        title: "Jaw movement and glowing eyes",
+        description:
+          "This model delivers the animated mouth and lit eye presence that make the skull feel alive without adding moving eye or head mechanics.",
       },
       {
-        slug: "base",
-        name: "Base",
-        description: "Pick the display base that matches the installation.",
-        required: true,
-        selectionType: "single",
-        sortOrder: 20,
-        metadata: {
-          helperText:
-            "Wood block is the standard display base. The others are better suited to themed scenes or premium staging.",
-          whyItMatters:
-            "This changes how the prop sits in the environment and slightly affects the final configured price.",
-        },
-        options: [
-          {
-            slug: "wood-block",
-            label: "Wood Block",
-            priceDeltaCents: 0,
-            sortOrder: 10,
-            isDefault: true,
-          },
-          {
-            slug: "black-wood-base",
-            label: "Black Wood Base",
-            priceDeltaCents: 0,
-            sortOrder: 20,
-          },
-          {
-            slug: "3d-trophy-base",
-            label: "3D Trophy Base",
-            priceDeltaCents: 0,
-            sortOrder: 30,
-          },
-          {
-            slug: "skeleton-torso",
-            label: "Skeleton Torso",
-            priceDeltaCents: 0,
-            sortOrder: 40,
-          },
-        ],
+        eyebrow: "Character lineup",
+        title: "Same finishes as the higher tiers",
+        description:
+          "Pirate, Vampire, Witch, Clown, Scarecrow, and the clean white skull are all still available here.",
       },
-      ...createCommonSkullGroups(),
+      {
+        eyebrow: "Show control",
+        title: "Same add-ons and routines",
+        description:
+          "Control extras, included routines, premium routines, and base options stay identical across the full skull lineup.",
+      },
     ],
-  },
+    specs: [
+      "3D-printed commercial skull construction",
+      "Jaw movement with glowing LED eyes",
+      "Fixed head and fixed eye position",
+      "Approx. 8 x 8 x 11.5 inches / 6.28 lbs",
+    ],
+  }),
+  createSkullTierProduct({
+    slug: "skulltronix-skull-plus",
+    name: "SkullTronix Skull Plus",
+    tier: "Plus",
+    tierRank: 2,
+    basePriceCents: 64900,
+    shortDescription:
+      "Mid-tier skull build that adds left-right and up-down eye movement while the head stays fixed.",
+    description:
+      "Skull Plus keeps everything in Bare Bones and adds moving eyes for more expression. It is the middle ground for buyers who want stronger performance without stepping all the way up to the full-motion neck assembly.",
+    heroSummary:
+      "Choose Plus when you want animated eye movement in addition to the jaw and glowing eyes, then configure the same finishes and accessories as the rest of the lineup.",
+    leadTime: "Balanced skull build for scenes that need more expression without head motion",
+    featureCards: [
+      {
+        eyebrow: "Motion package",
+        title: "Animated eyes without neck movement",
+        description:
+          "Plus adds left-right and up-down eye movement, which gives the performer more personality while keeping the head stationary.",
+      },
+      {
+        eyebrow: "Character lineup",
+        title: "Built on the same skull shell",
+        description:
+          "You still get the same character finishes and the same white-skull foundation shown throughout the lineup.",
+      },
+      {
+        eyebrow: "Show control",
+        title: "Same add-ons and routines",
+        description:
+          "The motion upgrade does not change the accessory stack, base options, or routine catalog buyers can add below.",
+      },
+    ],
+    specs: [
+      "3D-printed commercial skull construction",
+      "Jaw movement with glowing LED eyes",
+      "Eye movement: left/right and up/down",
+      "Fixed head position",
+    ],
+  }),
+  createSkullTierProduct({
+    slug: "skulltronix-skull",
+    name: "SkullTronix Skull Pro",
+    tier: "Pro",
+    tierRank: 3,
+    basePriceCents: 119900,
+    shortDescription:
+      "Full-motion SkullTronix skull with jaw, glowing eyes, moving eyes, and complete head articulation.",
+    description:
+      "Pro is the full-motion version that was previously shown on the site as the default white SkullTronix skull. It combines jaw movement, glowing eyes, animated eyes, and full head movement for the most expressive performance package in the lineup.",
+    heroSummary:
+      "Build the full-motion SkullTronix rig with the right character finish, base, routines, and show-control extras for your attraction.",
+    leadTime: "Full-motion flagship skull for haunted attractions and premium demos",
+    featureCards: [
+      {
+        eyebrow: "Motion package",
+        title: "Full eye and head articulation",
+        description:
+          "Jaw movement, glowing eyes, full eye movement, and left-right, up-down, plus side-to-side head motion make this the most lifelike skull build.",
+      },
+      {
+        eyebrow: "Character lineup",
+        title: "Same finishes, maximum performance",
+        description:
+          "Use the white skull or swap to Pirate, Vampire, Witch, Clown, Scarecrow, and more without leaving the Pro motion tier.",
+      },
+      {
+        eyebrow: "Operations",
+        title: "Built for repeat nightly use",
+        description:
+          "Pre-calibrated, durable, and easy to integrate into queue lines, trade shows, or permanent attractions.",
+      },
+    ],
+    specs: [
+      "3D-printed commercial construction",
+      "Jaw movement and full head articulation",
+      "Glowing LED eyes with left/right and up/down eye movement",
+      "Approx. 8 x 8 x 11.5 inches / 6.28 lbs",
+    ],
+  }),
   {
     slug: "skulltronix-skullkin",
     name: "SkullTronix Skullkin",
@@ -552,9 +679,16 @@ export const catalogSeed: CatalogProduct[] = [
     active: true,
     metadata: {
       category: "Arts & Entertainment",
+      heroCtaLabel: "Build Your Skullkin",
       heroEyebrow: "Creature Build",
+      heroHighlights: [
+        "Orange Skullkin shell",
+        "Commercial motion platform",
+        "Show-ready control options",
+      ],
       heroSummary:
         "Choose the display base, keep the included routines, and add the control extras your show actually needs.",
+      heroTagline: "Orange shell. Skull stare. Built to stop people cold.",
       gallery: [
         {
           type: "image",
@@ -595,12 +729,12 @@ export const catalogSeed: CatalogProduct[] = [
       ],
       note: "All Skullkin builds ship with the four included routines already loaded.",
       leadTime: "A character-driven skull build for haunts and seasonal installations",
-      shippingNote: "Product total only at checkout for MVP. Shipping is coordinated after purchase.",
+      shippingNote: "Shipping is calculated after purchase and coordinated with our team.",
       supportItems: commonSupportItems,
       relatedProductSlugs: [
+        "skulltronix-skull-bare-bones",
+        "skulltronix-skull-plus",
         "skulltronix-skull",
-        "skulltronix-trunk-or-treat-skull",
-        "skulltronix-dancing-pumpkin",
       ],
     },
     optionGroups: [
@@ -639,7 +773,7 @@ export const catalogSeed: CatalogProduct[] = [
     shortDescription:
       "A high-impact Halloween tailgate centerpiece with the same customizable motion platform behind it.",
     description:
-      "The Trunk or Treat Skull is a simpler single-step themed build: pick the finish, then layer in show-control extras and additional routines. It fits the MVP perfectly because it stays easy to browse on mobile while still proving the pricing engine.",
+      "The Trunk or Treat Skull is a simpler single-step themed build: pick the finish, then layer in show-control extras and additional routines.",
     basePriceCents: 149500,
     imageUrl:
       "https://festivemotion.com/wp-content/uploads/2025/08/SkullTronix-Trunk-or-Treat-Skull-1.webp",
@@ -876,7 +1010,7 @@ export const catalogSeed: CatalogProduct[] = [
         metadata: {
           helperText: "The standard controller is enough for demos. DMX is better for coordinated scenes.",
           whyItMatters:
-            "This mirrors the Apple-style primary configuration decision: simple buyer language, clear upgrade value, and immediate pricing feedback.",
+            "Easily configure the perfect performer for your venue's needs.",
         },
         options: [
           {
@@ -977,7 +1111,7 @@ export const catalogSeed: CatalogProduct[] = [
     shortDescription:
       "A synchronized triple-pumpkin setup for buyers who want more spectacle per install.",
     description:
-      "The trio takes the same visual idea as the single Dancing Pumpkin and stretches it into a larger scene piece. For MVP it stays intentionally simple: choose the show-control package and the transport extras, then check out.",
+      "The trio takes the same visual idea as the single Dancing Pumpkin and stretches it into a larger scene piece. Choose the show-control package and the transport extras, then check out.",
     basePriceCents: 377500,
     imageUrl:
       "https://festivemotion.com/wp-content/uploads/2025/08/Pumpkin-Trio.webp",

@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { useCart } from "@/lib/cart-context";
 
 export function ClearCartOnMount() {
-  const { clearCart } = useCart();
+  const { clearCart, hydrated } = useCart();
 
   useEffect(() => {
-    clearCart();
-  }, [clearCart]);
+    if (hydrated) clearCart();
+  }, [clearCart, hydrated]);
 
   return null;
 }

@@ -159,7 +159,7 @@ export function CartDrawer() {
             <button
               type="button"
               onClick={handleCheckout}
-              className="inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0f0f0f] transition hover:bg-white/90"
+              className="button-light inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition"
             >
               Proceed to Checkout
             </button>
