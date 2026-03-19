@@ -166,6 +166,27 @@ export function CheckoutForm() {
     }
   }, [session]);
 
+  // Pre-fill phone + shipping from last order
+  useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/user/last-order-info")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((info) => {
+        if (!info) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- pre-filling form fields from async API data
+        setFields((prev) => ({
+          ...prev,
+          phone: prev.phone || info.customerPhone || "",
+          street: prev.street || info.shippingAddress?.street || "",
+          apt: prev.apt || info.shippingAddress?.apt || "",
+          city: prev.city || info.shippingAddress?.city || "",
+          state: prev.state || info.shippingAddress?.state || "",
+          zip: prev.zip || info.shippingAddress?.zip || "",
+        }));
+      })
+      .catch(() => {});
+  }, [session?.user]);
+
   // Redirect if empty cart
   useEffect(() => {
     if (hydrated && items.length === 0) {
