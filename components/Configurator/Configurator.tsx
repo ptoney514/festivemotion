@@ -161,8 +161,8 @@ export function Configurator({
           <span className="text-white/70">{product.name}</span>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.95fr)_360px]">
-          <section className="lg:sticky lg:top-28 lg:self-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.95fr)_360px]">
+          <section className="min-w-0 lg:sticky lg:top-28 lg:self-start">
             <div className="overflow-hidden rounded-2xl sm:rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.12))]">
               <div className="relative aspect-square sm:aspect-[4/5]">
                 <Image
@@ -200,7 +200,7 @@ export function Configurator({
             </div>
           </section>
 
-          <section className="space-y-6">
+          <section className="min-w-0 space-y-6">
             <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-6">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
                 {product.metadata.heroEyebrow ?? "Configure"}
@@ -306,7 +306,7 @@ export function Configurator({
             ) : null}
           </section>
 
-          <aside className="hidden xl:block xl:sticky xl:top-28 xl:self-start">
+          <aside className="hidden min-w-0 xl:block xl:sticky xl:top-28 xl:self-start">
             <SummaryCard
               actionLabel={addedFeedback ? "Added!" : "Add to Cart"}
               busy={addedFeedback}
@@ -348,7 +348,7 @@ export function Configurator({
           </section>
         ) : null}
 
-        <section className="mt-16 grid gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        <section className="mt-16 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
               Details
