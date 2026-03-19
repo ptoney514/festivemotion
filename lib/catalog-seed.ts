@@ -152,6 +152,7 @@ function createSkullCharacterGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 20,
         description: "Weathered painted finish for a more aged look.",
+        metadata: { displayPriceDeltaCents: 10000 },
       },
       {
         slug: "witch",
@@ -159,6 +160,7 @@ function createSkullCharacterGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 30,
         description: "Witch character finish with seasonal styling.",
+        metadata: { displayPriceDeltaCents: 10000 },
       },
       {
         slug: "pirate",
@@ -166,6 +168,7 @@ function createSkullCharacterGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 40,
         description: "Pirate character finish for nautical scenes.",
+        metadata: { displayPriceDeltaCents: 10000 },
       },
       {
         slug: "clown",
@@ -173,6 +176,7 @@ function createSkullCharacterGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 50,
         description: "Clown finish for carnival and freakshow sets.",
+        metadata: { displayPriceDeltaCents: 10000 },
       },
       {
         slug: "scarecrow",
@@ -180,6 +184,7 @@ function createSkullCharacterGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 60,
         description: "Harvest horror styling with rustic texture.",
+        metadata: { displayPriceDeltaCents: 10000 },
       },
       {
         slug: "vampire",
@@ -187,6 +192,7 @@ function createSkullCharacterGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 70,
         description: "Vampire finish for gothic and castle scenes.",
+        metadata: { displayPriceDeltaCents: 10000 },
       },
     ],
   };

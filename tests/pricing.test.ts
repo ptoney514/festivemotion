@@ -89,4 +89,48 @@ describe("calculatePrice", () => {
     expect(priced.valid).toBe(false);
     expect(priced.errors).toContain("Invalid option selected for Premium routines.");
   });
+
+  it("sets displayPriceDeltaCents on non-basic skull character options", () => {
+    const product = getProduct("skulltronix-skull-bare-bones");
+    const styleGroup = product.optionGroups.find((g) => g.slug === "style")!;
+    const basic = styleGroup.options.find((o) => o.slug === "basic")!;
+    const nonBasic = styleGroup.options.filter((o) => o.slug !== "basic");
+
+    expect(basic.metadata?.displayPriceDeltaCents).toBeUndefined();
+    for (const option of nonBasic) {
+      expect(option.metadata?.displayPriceDeltaCents).toBe(10000);
+    }
+  });
+
+  it("does not double-count displayPriceDeltaCents in pricing totals", () => {
+    const product = getProduct("skulltronix-skull-bare-bones");
+    const priced = calculatePrice(product, {
+      style: "painted",
+      base: "wood-block",
+    });
+
+    expect(priced.valid).toBe(true);
+    // painted + wood-block variant = basePriceCents + 10000
+    expect(priced.totalCents).toBe(64900);
+  });
+
+  it("adds $100 for painted character via variant matrix on all tiers", () => {
+    for (const slug of [
+      "skulltronix-skull-bare-bones",
+      "skulltronix-skull-plus",
+      "skulltronix-skull",
+    ]) {
+      const product = getProduct(slug);
+      const defaultPrice = calculatePrice(product, {
+        style: "basic",
+        base: "wood-block",
+      });
+      const paintedPrice = calculatePrice(product, {
+        style: "painted",
+        base: "wood-block",
+      });
+
+      expect(paintedPrice.totalCents - defaultPrice.totalCents).toBe(10000);
+    }
+  });
 });
