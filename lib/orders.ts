@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { configurations, orderEvents, orderItems, orders, products } from "@/lib/schema";
 import { getDb } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
@@ -198,4 +198,55 @@ export async function getSuccessSummary(sessionId: string) {
       state: "not_found" as const,
     };
   }
+}
+
+export async function getOrdersByUserId(userId: string) {
+  const db = getDb();
+  if (!db) return [];
+
+  const userOrders = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.userId, userId))
+    .orderBy(desc(orders.createdAt));
+
+  if (userOrders.length === 0) return [];
+
+  const orderIds = userOrders.map((o) => o.id);
+  const allItems = await db
+    .select()
+    .from(orderItems)
+    .where(inArray(orderItems.orderId, orderIds));
+
+  const itemsByOrder = new Map<string, (typeof allItems)[number][]>();
+  for (const item of allItems) {
+    const list = itemsByOrder.get(item.orderId) ?? [];
+    list.push(item);
+    itemsByOrder.set(item.orderId, list);
+  }
+
+  return userOrders.map((order) => ({
+    ...order,
+    items: itemsByOrder.get(order.id) ?? [],
+  }));
+}
+
+export async function getLastOrderInfo(userId: string) {
+  const db = getDb();
+  if (!db) return null;
+
+  const [lastOrder] = await db
+    .select({
+      customerName: orders.customerName,
+      customerPhone: orders.customerPhone,
+      shippingAddress: orders.shippingAddress,
+    })
+    .from(orders)
+    .where(eq(orders.userId, userId))
+    .orderBy(desc(orders.createdAt))
+    .limit(1);
+
+  if (!lastOrder) return null;
+
+  return lastOrder;
 }

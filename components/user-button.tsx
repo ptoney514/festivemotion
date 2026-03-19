@@ -62,12 +62,19 @@ export function UserButton() {
               {session.user.email}
             </p>
           </div>
+          <Link
+            href="/orders"
+            onClick={close}
+            className="mt-1 block w-full rounded-xl px-3 py-2 text-left text-sm text-white/70 transition hover:bg-white/5 hover:text-white"
+          >
+            My Orders
+          </Link>
           <button
             onClick={() => {
               close();
               signOut();
             }}
-            className="mt-1 w-full rounded-xl px-3 py-2 text-left text-sm text-white/70 transition hover:bg-white/5 hover:text-white"
+            className="w-full rounded-xl px-3 py-2 text-left text-sm text-white/70 transition hover:bg-white/5 hover:text-white"
           >
             Sign out
           </button>

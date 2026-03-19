@@ -193,6 +193,7 @@ export const orders = pgTable(
     stripeSessionIndex: uniqueIndex("orders_stripe_session_id_idx").on(
       table.stripeSessionId,
     ),
+    userIdIdx: index("orders_user_id_idx").on(table.userId),
   }),
 );
 
