@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useDeferredValue, useEffect, useState, useTransition } from "react";
+import { useDeferredValue, useEffect, useRef, useState, useTransition } from "react";
 import { formatCurrency } from "@/lib/format";
 import { buildDefaultSelections, calculatePrice, getConfiguredImage } from "@/lib/pricing";
 import { useCart } from "@/lib/cart-context";
@@ -42,6 +42,13 @@ export function Configurator({
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isPricingSyncing, startPricingTransition] = useTransition();
+  const addedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    };
+  }, []);
 
   const optimisticPrice = calculatePrice(product, selections);
   const displayPrice = serverPrice ?? optimisticPrice;
@@ -79,15 +86,16 @@ export function Configurator({
         }
       } catch {
         if (!controller.signal.aborted) {
+          const fallbackPrice = calculatePrice(product, deferredSelections);
           startPricingTransition(() => {
-            setServerPrice(optimisticPrice);
+            setServerPrice(fallbackPrice);
           });
         }
       }
     })();
 
     return () => controller.abort();
-  }, [deferredSelections, optimisticPrice, product.slug]);
+  }, [deferredSelections, product]);
 
   function handleToggle(groupSlug: string, optionSlug: string) {
     setSelections((currentSelections) => {
@@ -134,7 +142,8 @@ export function Configurator({
     });
     openCart();
     setAddedFeedback(true);
-    setTimeout(() => setAddedFeedback(false), 1500);
+    if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    addedTimerRef.current = setTimeout(() => setAddedFeedback(false), 1500);
   }
 
   return (
@@ -154,8 +163,8 @@ export function Configurator({
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.95fr)_360px]">
           <section className="lg:sticky lg:top-28 lg:self-start">
-            <div className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.12))]">
-              <div className="relative aspect-[4/5]">
+            <div className="overflow-hidden rounded-2xl sm:rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.12))]">
+              <div className="relative aspect-square sm:aspect-[4/5]">
                 <Image
                   src={activeMedia.src}
                   alt={activeMedia.alt}
@@ -167,13 +176,13 @@ export function Configurator({
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-4 gap-3">
+            <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
               {gallery.map((item, index) => (
                 <button
                   key={`${item.src}-${index}`}
                   type="button"
                   onClick={() => setActiveMediaIndex(index)}
-                  className={`relative aspect-square overflow-hidden rounded-2xl border ${
+                  className={`relative aspect-square overflow-hidden rounded-xl sm:rounded-2xl border ${
                     index === activeMediaIndex
                       ? "border-[#ff5a1f]"
                       : "border-white/10 hover:border-white/20"
@@ -184,7 +193,7 @@ export function Configurator({
                     alt={item.alt}
                     fill
                     className="object-cover"
-                    sizes="120px"
+                    sizes="(max-width: 640px) 25vw, 120px"
                   />
                 </button>
               ))}

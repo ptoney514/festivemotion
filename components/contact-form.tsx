@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 
 type FormState = {
   status: "idle" | "success" | "error";
@@ -41,6 +41,12 @@ async function submitContactForm(
 }
 
 export function ContactForm() {
+  const [formKey, setFormKey] = useState(0);
+
+  return <ContactFormInner key={formKey} onReset={() => setFormKey((k) => k + 1)} />;
+}
+
+function ContactFormInner({ onReset }: { onReset: () => void }) {
   const [state, action, isPending] = useActionState(submitContactForm, {
     status: "idle" as const,
   });
@@ -64,12 +70,7 @@ export function ContactForm() {
           </p>
           <button
             type="button"
-            onClick={() => {
-              formRef.current?.reset();
-              window.location.hash = "";
-              window.location.hash = "contact-form";
-              window.location.reload();
-            }}
+            onClick={onReset}
             className="mt-2 inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/20"
           >
             Send another message
@@ -96,39 +97,54 @@ export function ContactForm() {
 
       <form ref={formRef} action={action} className="mt-6 space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <input
-            type="text"
-            name="name"
-            placeholder="Name"
-            required
-            maxLength={100}
-            className={inputClass}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            required
-            className={inputClass}
-          />
+          <div>
+            <label htmlFor="contact-name" className="sr-only">Name</label>
+            <input
+              id="contact-name"
+              type="text"
+              name="name"
+              placeholder="Name"
+              required
+              maxLength={100}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label htmlFor="contact-email" className="sr-only">Email</label>
+            <input
+              id="contact-email"
+              type="email"
+              name="email"
+              placeholder="Email"
+              required
+              className={inputClass}
+            />
+          </div>
         </div>
 
-        <select name="subject" defaultValue="general" className={inputClass}>
-          <option value="general">General Inquiry</option>
-          <option value="order-support">Order Support</option>
-          <option value="custom-project">Custom Project</option>
-          <option value="technical-support">Technical Support</option>
-        </select>
+        <div>
+          <label htmlFor="contact-subject" className="sr-only">Subject</label>
+          <select id="contact-subject" name="subject" defaultValue="general" className={inputClass}>
+            <option value="general">General Inquiry</option>
+            <option value="order-support">Order Support</option>
+            <option value="custom-project">Custom Project</option>
+            <option value="technical-support">Technical Support</option>
+          </select>
+        </div>
 
-        <textarea
-          name="message"
-          placeholder="Your message..."
-          required
-          minLength={10}
-          maxLength={5000}
-          rows={5}
-          className={inputClass + " resize-none"}
-        />
+        <div>
+          <label htmlFor="contact-message" className="sr-only">Message</label>
+          <textarea
+            id="contact-message"
+            name="message"
+            placeholder="Your message..."
+            required
+            minLength={10}
+            maxLength={5000}
+            rows={5}
+            className={inputClass + " resize-none"}
+          />
+        </div>
 
         <button
           type="submit"

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { contactFormSchema } from "@/lib/validators";
 import { sendContactEmail } from "@/lib/email";
 
@@ -16,7 +17,9 @@ export async function POST(request: Request) {
   try {
     await sendContactEmail(parsed.data);
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("Contact form submission failed:", error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { error: "Failed to send message. Please try again." },
       { status: 500 },

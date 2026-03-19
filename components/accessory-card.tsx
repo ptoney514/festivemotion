@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import type { Accessory } from "@/lib/accessories";
 import { formatCurrency } from "@/lib/format";
@@ -9,6 +9,13 @@ import { formatCurrency } from "@/lib/format";
 export function AccessoryCard({ accessory }: { accessory: Accessory }) {
   const { addAccessory, openCart } = useCart();
   const [added, setAdded] = useState(false);
+  const addedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    };
+  }, []);
 
   function handleAdd() {
     addAccessory({
@@ -21,7 +28,8 @@ export function AccessoryCard({ accessory }: { accessory: Accessory }) {
     });
     openCart();
     setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+    if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    addedTimerRef.current = setTimeout(() => setAdded(false), 1500);
   }
 
   return (

@@ -178,8 +178,8 @@ function buildCustomerHtml(args: SendCustomerConfirmationEmailArgs): string {
     .map(
       (item) =>
         `<tr>
-          <td style="padding:8px 0;border-bottom:1px solid #222;color:#ccc;font-size:14px">${item.label}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #222;color:#ccc;font-size:14px;text-align:center">${item.quantity}</td>
+          <td style="padding:8px 0;border-bottom:1px solid #222;color:#ccc;font-size:14px">${escapeHtml(item.label)}</td>
+          <td style="padding:8px 0;border-bottom:1px solid #222;color:#ccc;font-size:14px;text-align:center">${escapeHtml(String(item.quantity))}</td>
           <td style="padding:8px 0;border-bottom:1px solid #222;color:#fff;font-size:14px;text-align:right;font-weight:600">${formatDollars(item.totalCents)}</td>
         </tr>`,
     )
