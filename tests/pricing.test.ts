@@ -165,4 +165,125 @@ describe("calculatePrice", () => {
       expect(upgradedPrice.totalCents - defaultPrice.totalCents).toBe(7500);
     }
   });
+
+  describe("comprehensive character pricing", () => {
+    const tierSlugs = [
+      "skulltronix-skull-bare-bones",
+      "skulltronix-skull-plus",
+      "skulltronix-skull",
+    ] as const;
+
+    const tierBasePrices: Record<string, number> = {
+      "skulltronix-skull-bare-bones": 54900,
+      "skulltronix-skull-plus": 64900,
+      "skulltronix-skull": 119900,
+    };
+
+    const nonBasicCharacters = [
+      "painted",
+      "witch",
+      "pirate",
+      "clown",
+      "scarecrow",
+      "vampire",
+    ] as const;
+
+    const nonDefaultBases = [
+      "black-wood-base",
+      "3d-trophy-base",
+      "skeleton-torso",
+    ] as const;
+
+    it("every non-basic character adds $100 on every tier (wood-block base)", () => {
+      for (const slug of tierSlugs) {
+        const product = getProduct(slug);
+        const base = tierBasePrices[slug];
+
+        for (const character of nonBasicCharacters) {
+          const priced = calculatePrice(product, {
+            style: character,
+            base: "wood-block",
+          });
+
+          expect(priced.valid).toBe(true);
+          expect(priced.totalCents).toBe(base + 10000);
+        }
+      }
+    });
+
+    it("every non-default base adds $75 on every tier (basic character)", () => {
+      for (const slug of tierSlugs) {
+        const product = getProduct(slug);
+        const base = tierBasePrices[slug];
+
+        for (const baseName of nonDefaultBases) {
+          const priced = calculatePrice(product, {
+            style: "basic",
+            base: baseName,
+          });
+
+          expect(priced.valid).toBe(true);
+          expect(priced.totalCents).toBe(base + 7500);
+        }
+      }
+    });
+
+    it("painted + black-wood-base totals basePriceCents + $160 on all tiers", () => {
+      for (const slug of tierSlugs) {
+        const product = getProduct(slug);
+        const priced = calculatePrice(product, {
+          style: "painted",
+          base: "black-wood-base",
+        });
+
+        expect(priced.valid).toBe(true);
+        expect(priced.totalCents).toBe(tierBasePrices[slug] + 16000);
+      }
+    });
+
+    it("painted + skeleton-torso totals basePriceCents + $175 on all tiers", () => {
+      for (const slug of tierSlugs) {
+        const product = getProduct(slug);
+        const priced = calculatePrice(product, {
+          style: "painted",
+          base: "skeleton-torso",
+        });
+
+        expect(priced.valid).toBe(true);
+        expect(priced.totalCents).toBe(tierBasePrices[slug] + 17500);
+      }
+    });
+
+    it("displayPriceDeltaCents metadata is present on all three tiers for characters", () => {
+      for (const slug of tierSlugs) {
+        const product = getProduct(slug);
+        const styleGroup = product.optionGroups.find((g) => g.slug === "style")!;
+        const basic = styleGroup.options.find((o) => o.slug === "basic")!;
+        const nonBasic = styleGroup.options.filter((o) => o.slug !== "basic");
+
+        expect(basic.metadata?.displayPriceDeltaCents).toBeUndefined();
+        expect(nonBasic).toHaveLength(6);
+
+        for (const option of nonBasic) {
+          expect(option.metadata?.displayPriceDeltaCents).toBe(10000);
+        }
+      }
+    });
+
+    it("displayPriceDeltaCents metadata is present on all three tiers for bases", () => {
+      for (const slug of tierSlugs) {
+        const product = getProduct(slug);
+        const baseGroup = product.optionGroups.find((g) => g.slug === "base")!;
+        const woodBlock = baseGroup.options.find((o) => o.slug === "wood-block")!;
+        const nonDefault = baseGroup.options.filter((o) => o.slug !== "wood-block");
+
+        expect(woodBlock.metadata?.displayPriceDeltaCents).toBeUndefined();
+        expect(nonDefault).toHaveLength(3);
+
+        for (const option of nonDefault) {
+          expect(option.metadata?.displayPriceDeltaCents).toBe(7500);
+        }
+      }
+    });
+  });
 });
