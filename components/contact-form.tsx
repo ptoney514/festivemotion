@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 
 type FormState = {
   status: "idle" | "success" | "error";
@@ -50,8 +50,6 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
   const [state, action, isPending] = useActionState(submitContactForm, {
     status: "idle" as const,
   });
-  const formRef = useRef<HTMLFormElement>(null);
-
   if (state.status === "success") {
     return (
       <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8" id="contact-form">
@@ -95,7 +93,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
         </div>
       )}
 
-      <form ref={formRef} action={action} className="mt-6 space-y-4">
+      <form action={action} className="mt-6 space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="contact-name" className="sr-only">Name</label>

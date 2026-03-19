@@ -8,22 +8,7 @@ const MAX_REQUESTS = 5;
 let rateLimiter: {
   limit: (key: string) => Promise<{ success: boolean }>;
 } | null = null;
-
-// Try to initialize Upstash rate limiter if env vars are available
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  try {
-    // Dynamic import avoids build errors when env vars are absent
-    const { Ratelimit } = await import("@upstash/ratelimit");
-    const { Redis } = await import("@upstash/redis");
-
-    rateLimiter = new Ratelimit({
-      redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(MAX_REQUESTS, "60 s"),
-    });
-  } catch {
-    // Fall through to in-memory fallback
-  }
-}
+let rateLimiterInitialized = false;
 
 // In-memory fallback for local dev / when Upstash is not configured
 const inMemoryStore = new Map<string, { count: number; resetTime: number }>();
@@ -45,6 +30,26 @@ async function inMemoryLimit(key: string): Promise<{ success: boolean }> {
   return { success: true };
 }
 
+// Lazy initialization — avoids top-level await which doesn't work in Edge runtime
+async function getRateLimiter() {
+  if (!rateLimiterInitialized) {
+    rateLimiterInitialized = true;
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      try {
+        const { Ratelimit } = await import("@upstash/ratelimit");
+        const { Redis } = await import("@upstash/redis");
+        rateLimiter = new Ratelimit({
+          redis: Redis.fromEnv(),
+          limiter: Ratelimit.slidingWindow(MAX_REQUESTS, "60 s"),
+        });
+      } catch {
+        // Fall through to in-memory fallback
+      }
+    }
+  }
+  return rateLimiter ?? { limit: inMemoryLimit };
+}
+
 function getClientIp(request: NextRequest): string {
   return (
     request.headers.get("x-real-ip") ??
@@ -57,7 +62,7 @@ export async function middleware(request: NextRequest) {
   const ip = getClientIp(request);
   const key = `${ip}:${request.nextUrl.pathname}`;
 
-  const limiter = rateLimiter ?? { limit: inMemoryLimit };
+  const limiter = await getRateLimiter();
   const { success } = await limiter.limit(key);
 
   if (!success) {
