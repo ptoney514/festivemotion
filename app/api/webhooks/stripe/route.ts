@@ -58,6 +58,14 @@ export async function POST(request: Request) {
       console.error(
         `Amount mismatch for order ${orderRecord.order.id}: expected ${orderRecord.order.amountTotalCents}, got ${amountTotalCents}`,
       );
+      Sentry.captureMessage("Stripe amount mismatch", {
+        level: "error",
+        extra: {
+          orderId: orderRecord.order.id,
+          stripeAmount: amountTotalCents,
+          storedAmount: orderRecord.order.amountTotalCents,
+        },
+      });
     }
 
     // Parse shipping address from Stripe metadata (backfill safety net)
@@ -106,8 +114,8 @@ export async function POST(request: Request) {
         console.error("Store notification email failed:", err);
       }
 
-      // Customer confirmation email — failure doesn't block webhook response
-      if (customerEmail) {
+      // Customer confirmation email — only for successful payments
+      if (customerEmail && nextStatus === "paid") {
         try {
           await sendCustomerConfirmationEmail({
             orderId: orderRecord.order.id,

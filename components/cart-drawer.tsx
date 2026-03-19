@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getCartItemTotal } from "@/lib/cart-types";
 import type { CartItem } from "@/lib/cart-types";
@@ -81,6 +82,13 @@ function AccessoryItemRow({
 export function CartDrawer() {
   const { items, totalCents, isCartOpen, closeCart, removeItem, updateQuantity, clearCart } = useCart();
   const router = useRouter();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isCartOpen) {
+      closeButtonRef.current?.focus();
+    }
+  }, [isCartOpen]);
 
   function handleCheckout() {
     closeCart();
@@ -99,14 +107,18 @@ export function CartDrawer() {
 
       {/* Drawer */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-heading"
         className={`fixed inset-y-0 right-0 z-[80] flex w-full max-w-md flex-col border-l border-white/10 bg-[rgba(8,8,8,0.96)] backdrop-blur-xl transition-transform duration-300 ${
           isCartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <h2 className="font-display text-lg font-semibold tracking-[-0.03em] text-white">Your Cart</h2>
+          <h2 id="cart-heading" className="font-display text-lg font-semibold tracking-[-0.03em] text-white">Your Cart</h2>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={closeCart}
             className="flex size-8 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:border-white/20 hover:text-white"

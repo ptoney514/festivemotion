@@ -15,7 +15,7 @@ export function ProductCard({
       href={`/products/${product.slug}`}
       className="group overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.03] transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.04))]">
+      <div className="relative aspect-[4/3] sm:aspect-[4/5] overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.04))]">
         <Image
           src={product.imageUrl}
           alt={product.name}

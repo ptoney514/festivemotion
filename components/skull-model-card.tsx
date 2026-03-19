@@ -95,7 +95,7 @@ export function SkullModelCard({
       }`}
     >
       {showImage ? (
-        <div className="relative aspect-[4/5] overflow-hidden border-b border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.08))]">
+        <div className="relative aspect-[4/3] sm:aspect-[4/5] overflow-hidden border-b border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,90,31,0.16),_transparent_45%),linear-gradient(180deg,_rgba(255,255,255,0.04),_rgba(0,0,0,0.08))]">
           <Image
             src={product.imageUrl}
             alt={product.name}

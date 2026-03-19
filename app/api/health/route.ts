@@ -21,6 +21,9 @@ export async function GET() {
 
   return NextResponse.json(
     { status: healthy ? "healthy" : "degraded", checks },
-    { status: healthy ? 200 : 503 },
+    {
+      status: healthy ? 200 : 503,
+      headers: { "Cache-Control": "no-store" },
+    },
   );
 }

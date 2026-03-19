@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { CartProvider } from "@/lib/cart-context";
 import { SessionProvider } from "@/components/session-provider";
 import { CartDrawer } from "@/components/cart-drawer";
@@ -29,6 +31,14 @@ export const metadata: Metadata = {
     url: "https://skulltronix.festivemotion.com",
     siteName: "FestiveMotion",
     type: "website",
+    images: [
+      {
+        url: "https://assets.smallhr.app/festivemotion/products/pro.webp",
+        width: 600,
+        height: 900,
+        alt: "FestiveMotion - Premium Animatronic Props",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -52,6 +62,8 @@ export default function RootLayout({
             <CartDrawer />
           </CartProvider>
         </SessionProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
