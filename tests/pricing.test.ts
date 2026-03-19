@@ -133,4 +133,36 @@ describe("calculatePrice", () => {
       expect(paintedPrice.totalCents - defaultPrice.totalCents).toBe(10000);
     }
   });
+
+  it("sets displayPriceDeltaCents on non-default skull base options", () => {
+    const product = getProduct("skulltronix-skull-bare-bones");
+    const baseGroup = product.optionGroups.find((g) => g.slug === "base")!;
+    const woodBlock = baseGroup.options.find((o) => o.slug === "wood-block")!;
+    const nonDefault = baseGroup.options.filter((o) => o.slug !== "wood-block");
+
+    expect(woodBlock.metadata?.displayPriceDeltaCents).toBeUndefined();
+    for (const option of nonDefault) {
+      expect(option.metadata?.displayPriceDeltaCents).toBe(7500);
+    }
+  });
+
+  it("adds $75 for black-wood-base via variant matrix on all tiers", () => {
+    for (const slug of [
+      "skulltronix-skull-bare-bones",
+      "skulltronix-skull-plus",
+      "skulltronix-skull",
+    ]) {
+      const product = getProduct(slug);
+      const defaultPrice = calculatePrice(product, {
+        style: "basic",
+        base: "wood-block",
+      });
+      const upgradedPrice = calculatePrice(product, {
+        style: "basic",
+        base: "black-wood-base",
+      });
+
+      expect(upgradedPrice.totalCents - defaultPrice.totalCents).toBe(7500);
+    }
+  });
 });

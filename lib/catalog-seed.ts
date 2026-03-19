@@ -227,6 +227,7 @@ function createSkullBaseGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 20,
         description: "A cleaner pedestal look for polished installs.",
+        metadata: { displayPriceDeltaCents: 7500 },
       },
       {
         slug: "3d-trophy-base",
@@ -234,6 +235,7 @@ function createSkullBaseGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 30,
         description: "Decorative display base with more visual presence.",
+        metadata: { displayPriceDeltaCents: 7500 },
       },
       {
         slug: "skeleton-torso",
@@ -241,6 +243,7 @@ function createSkullBaseGroup(): CatalogOptionGroup {
         priceDeltaCents: 0,
         sortOrder: 40,
         description: "Theatrical mount for fuller scene dressing.",
+        metadata: { displayPriceDeltaCents: 7500 },
       },
     ],
   };
