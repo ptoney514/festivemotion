@@ -64,6 +64,7 @@ export type ProductMetadata = {
 
 export type OptionMetadata = {
   badge?: string;
+  displayPriceDeltaCents?: number;
   imageUrl?: string;
 };
 

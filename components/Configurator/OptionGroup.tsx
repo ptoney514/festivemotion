@@ -91,7 +91,8 @@ export function OptionGroup({
       <div className="mt-5 grid gap-3">
         {group.options.map((option) => {
           const checked = selectedValues.includes(option.slug);
-          const hasPrice = option.priceDeltaCents !== 0;
+          const displayDelta = option.metadata?.displayPriceDeltaCents ?? option.priceDeltaCents;
+          const hasPrice = displayDelta !== 0;
 
           return (
             <button
@@ -122,7 +123,7 @@ export function OptionGroup({
                   </div>
                 </div>
                 <span className="whitespace-nowrap text-sm font-semibold text-white">
-                  {hasPrice ? `+${formatCurrency(option.priceDeltaCents)}` : "Included"}
+                  {hasPrice ? `+${formatCurrency(displayDelta)}` : "Included"}
                 </span>
               </div>
             </button>
