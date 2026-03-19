@@ -18,10 +18,12 @@ const commonRoutineDefaults = [
 ];
 
 const skullLineupFamily = "skulltronix-skull-lineup";
-const whiteSkullImage = "/images/Painted.webp";
+const bareBonesImage = "https://assets.smallhr.app/festivemotion/products/bare-bones.webp";
+const plusImage = "https://assets.smallhr.app/festivemotion/products/plus.webp";
+const proImage = "https://assets.smallhr.app/festivemotion/products/pro.webp";
 
 const skullStyleImages = {
-  basic: whiteSkullImage,
+  basic: bareBonesImage,
   painted: "/images/Painted.webp",
   witch: "https://festivemotion.com/wp-content/uploads/2025/08/Witch-scaled.webp",
   pirate: "https://festivemotion.com/wp-content/uploads/2025/08/Pirates.webp",
@@ -33,7 +35,7 @@ const skullStyleImages = {
 const skullGallery = [
   {
     type: "image" as const,
-    src: whiteSkullImage,
+    src: proImage,
     alt: "Front hero view of the SkullTronix Skull animatronic.",
   },
   {
@@ -267,6 +269,7 @@ function createSkullTierProduct({
   leadTime,
   featureCards,
   specs,
+  imageUrl,
 }: {
   slug: string;
   name: string;
@@ -279,6 +282,7 @@ function createSkullTierProduct({
   leadTime: string;
   featureCards: CatalogProduct["metadata"]["featureCards"];
   specs: string[];
+  imageUrl: string;
 }) {
   const tierKey = slug.includes("bare-bones")
     ? "bare-bones"
@@ -292,7 +296,7 @@ function createSkullTierProduct({
     shortDescription,
     description,
     basePriceCents,
-    imageUrl: whiteSkullImage,
+    imageUrl,
     active: true,
     metadata: {
       capabilities: skullTierCapabilities[tierKey],
@@ -584,6 +588,7 @@ export const catalogSeed: CatalogProduct[] = [
       "Fixed head and fixed eye position",
       "Approx. 8 x 8 x 11.5 inches / 6.28 lbs",
     ],
+    imageUrl: bareBonesImage,
   }),
   createSkullTierProduct({
     slug: "skulltronix-skull-plus",
@@ -624,6 +629,7 @@ export const catalogSeed: CatalogProduct[] = [
       "Eye movement: left/right and up/down",
       "Fixed head position",
     ],
+    imageUrl: plusImage,
   }),
   createSkullTierProduct({
     slug: "skulltronix-skull",
@@ -664,6 +670,7 @@ export const catalogSeed: CatalogProduct[] = [
       "Glowing LED eyes with left/right and up/down eye movement",
       "Approx. 8 x 8 x 11.5 inches / 6.28 lbs",
     ],
+    imageUrl: proImage,
   }),
   {
     slug: "skulltronix-skullkin",

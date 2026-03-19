@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: "festivemotion.com",
         pathname: "/wp-content/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "assets.smallhr.app",
+        pathname: "/festivemotion/**",
+      },
     ],
   },
   async headers() {
