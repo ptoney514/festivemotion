@@ -76,5 +76,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/cart-checkout", "/api/contact", "/api/health"],
+  matcher: ["/api/cart-checkout", "/api/contact"],
 };

@@ -33,9 +33,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://skulltronix.festivemotion.com/og-default.jpg",
-        width: 1200,
-        height: 630,
+        url: "https://assets.smallhr.app/festivemotion/products/pro.webp",
+        width: 600,
+        height: 900,
         alt: "FestiveMotion - Premium Animatronic Props",
       },
     ],
