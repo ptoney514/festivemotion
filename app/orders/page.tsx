@@ -6,6 +6,8 @@ import { SiteHeader } from "@/components/site-header";
 import { formatCurrency } from "@/lib/format";
 import { getOrdersByUserId } from "@/lib/orders";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "My Orders | FestiveMotion",
   description: "View and track your FestiveMotion purchases.",
