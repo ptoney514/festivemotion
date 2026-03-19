@@ -65,7 +65,7 @@ const useCases = [
   {
     title: "Haunted Houses",
     description:
-      "Anchor props that deliver consistent, high-impact scares every night of the season without operator fatigue.",
+      "Anchor props that deliver consistent, high-impact scares every night of the season. Durable enough for repeat nightly use with quick resets between groups.",
     icon: "/figma/industry-haunted.svg",
     wide: true,
   },
@@ -100,9 +100,16 @@ const useCases = [
   {
     title: "Escape Rooms",
     description:
-      "Trigger-based reveals and tightly staged moments that elevate puzzle-solving into a fully immersive experience.",
+      "Simple trigger paths for tightly staged moments and controlled reveals that elevate puzzle-solving into a fully immersive experience.",
     icon: "/figma/industry-escape.svg",
     wide: true,
+  },
+  {
+    title: "Trade Shows",
+    description:
+      "Big visual impact with fast demo setup for short booth conversations. Grab attention on a crowded floor and leave a lasting impression.",
+    icon: "/figma/industry-theme.svg",
+    wide: false,
   },
 ];
 

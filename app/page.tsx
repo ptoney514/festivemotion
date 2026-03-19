@@ -2,27 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { HomeProductChip } from "@/components/home-product-chip";
 import { HomeProductTile } from "@/components/home-product-tile";
+import { PerformancesShowcase } from "@/components/performances-showcase";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { formatCurrency } from "@/lib/format";
 import { getCatalogProducts } from "@/lib/catalog";
 
 export const revalidate = 3600;
-
-const venueNotes = [
-  {
-    title: "Haunted Attractions",
-    description: "Durable enough for repeat nightly use and quick resets between groups.",
-  },
-  {
-    title: "Escape Rooms",
-    description: "Simple trigger paths for tightly staged moments and controlled reveals.",
-  },
-  {
-    title: "Trade Shows",
-    description: "Big visual impact with fast demo setup for short booth conversations.",
-  },
-];
 
 export default async function HomePage() {
   const products = await getCatalogProducts();
@@ -146,25 +132,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── Venue cards — moved above catalog ── */}
-        <section className="mx-auto max-w-[1280px] px-4 pt-12 sm:px-6 lg:px-8">
-          <div className="scrollbar-hide -mx-1 flex gap-3 overflow-x-auto px-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
-            {venueNotes.map((item) => (
-              <article
-                key={item.title}
-                className="min-w-[260px] flex-shrink-0 rounded-[24px] border border-white/10 bg-white/[0.03] p-5 sm:min-w-0 sm:flex-shrink"
-              >
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-                  Demo Fit
-                </p>
-                <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.04em] text-white">
-                  {item.title}
-                </h2>
-                <p className="mt-3 text-sm leading-7 text-white/60">{item.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+        {/* ── Performances ── */}
+        <PerformancesShowcase />
 
         {/* ── Catalog ── */}
         <section className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 lg:px-8">
