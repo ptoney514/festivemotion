@@ -102,10 +102,7 @@ export async function POST(request: Request) {
           unit_amount: priced.totalCents,
           product_data: {
             name: product.name,
-            description: priced.selectedOptions
-              .map((opt) => `${opt.groupName}: ${opt.labels.join(", ")}`)
-              .join(" | ")
-              .slice(0, 500) || product.shortDescription,
+            description: product.shortDescription,
             images: [product.imageUrl].filter((url) => url.startsWith("https://")),
           },
         },
@@ -174,25 +171,6 @@ export async function POST(request: Request) {
         email: customerEmail,
         name: customerName,
         phone: customerPhone ?? undefined,
-        address: {
-          line1: shippingAddress.street,
-          line2: shippingAddress.apt ?? undefined,
-          city: shippingAddress.city,
-          state: shippingAddress.state,
-          postal_code: shippingAddress.zip,
-          country: shippingAddress.country,
-        },
-        shipping: {
-          name: customerName,
-          address: {
-            line1: shippingAddress.street,
-            line2: shippingAddress.apt ?? undefined,
-            city: shippingAddress.city,
-            state: shippingAddress.state,
-            postal_code: shippingAddress.zip,
-            country: shippingAddress.country,
-          },
-        },
         metadata: { source: "festivemotion-checkout" },
       });
       stripeCustomerId = customer.id;
@@ -250,11 +228,6 @@ export async function POST(request: Request) {
           customerName: customerName ?? "",
           customerPhone: customerPhone ?? "",
           shippingAddress: shippingAddress ? JSON.stringify(shippingAddress) : "",
-          itemCount: String(orderItemValues.length),
-          itemSummary: orderItemValues
-            .map((oi) => `${oi.quantity}x ${oi.label}`)
-            .join(", ")
-            .slice(0, 500),
         },
         },
         { idempotencyKey: `checkout-${order.id}` },
@@ -292,8 +265,9 @@ export async function POST(request: Request) {
         message: error instanceof Error ? error.message : "Unknown Stripe error",
       });
 
+      const stripeMessage = error instanceof Error ? error.message : "Unknown error";
       return NextResponse.json(
-        { error: "Checkout could not be created." },
+        { error: `Checkout could not be created: ${stripeMessage}` },
         { status: 500 },
       );
     }
