@@ -465,7 +465,7 @@ function createCommonSkullGroups(): CatalogOptionGroup[] {
         {
           slug: "swamp-witch",
           label: "Swamp Witch",
-          priceDeltaCents: 0,
+          priceDeltaCents: 7500,
           sortOrder: 40,
         },
         {
@@ -554,6 +554,116 @@ function createCommonSkullGroups(): CatalogOptionGroup[] {
         },
       ],
     },
+  ];
+}
+
+/* ── Pumpkin option-group helpers ─────────────────────────── */
+
+const commonIncludedRoutinesGroup: CatalogOptionGroup = {
+  slug: "included-routines",
+  name: "Included routines",
+  description: "These four routines ship with every prop.",
+  required: false,
+  selectionType: "multi",
+  sortOrder: 20,
+  metadata: {
+    display: "included-list",
+    helperText: "Included with your prop at no extra charge.",
+  },
+  options: [
+    { slug: "witches-witches-witches", label: "Witches Witches Witches", priceDeltaCents: 0, sortOrder: 10, isDefault: true },
+    { slug: "tiptoe-through-the-graveyard", label: "Tiptoe Through The Graveyard", priceDeltaCents: 0, sortOrder: 20, isDefault: true },
+    { slug: "spooky-scary-skeletons", label: "Spooky Scary Skeletons", priceDeltaCents: 0, sortOrder: 30, isDefault: true },
+    { slug: "i-like-nightmares", label: "I Like Nightmares", priceDeltaCents: 0, sortOrder: 40, isDefault: true },
+  ],
+};
+
+const commonPremiumRoutinesGroup: CatalogOptionGroup = {
+  slug: "premium-routines",
+  name: "Premium routines",
+  description: "Add more themed performance tracks to match your scene.",
+  required: false,
+  selectionType: "multi",
+  sortOrder: 30,
+  metadata: {
+    helperText:
+      "Premium routines are added to the included set. If you need substitutions, the team can handle that offline.",
+    whyItMatters:
+      "Customize every detail to match your venue's theme and budget.",
+  },
+  options: [
+    { slug: "crazy-clown", label: "Crazy Clown", priceDeltaCents: 7500, sortOrder: 10 },
+    { slug: "clown-freakshow", label: "Clown Freakshow", priceDeltaCents: 7500, sortOrder: 20 },
+    { slug: "killer-clowns", label: "Killer Clowns", priceDeltaCents: 7500, sortOrder: 30 },
+    { slug: "swamp-witch", label: "Swamp Witch", priceDeltaCents: 7500, sortOrder: 40 },
+    { slug: "grimsley-ghosts", label: "Grimsley Ghosts", priceDeltaCents: 7500, sortOrder: 50 },
+    { slug: "seance", label: "Seance", priceDeltaCents: 7500, sortOrder: 60 },
+    { slug: "girl-in-white", label: "Girl In White", priceDeltaCents: 7500, sortOrder: 70 },
+    { slug: "madman", label: "Madman", priceDeltaCents: 7500, sortOrder: 80 },
+    { slug: "caged-creep", label: "Caged Creep", priceDeltaCents: 7500, sortOrder: 90 },
+    { slug: "mad-scientist", label: "Mad Scientist", priceDeltaCents: 7500, sortOrder: 100 },
+    { slug: "cannibal-buffet", label: "Cannibal Buffet", priceDeltaCents: 7500, sortOrder: 110 },
+    { slug: "house-of-pain", label: "House of Pain", priceDeltaCents: 7500, sortOrder: 120 },
+    { slug: "the-haunting", label: "The Haunting", priceDeltaCents: 7500, sortOrder: 130 },
+    { slug: "asylum-patient", label: "Asylum Patient", priceDeltaCents: 7500, sortOrder: 140 },
+    { slug: "straight-ahead", label: "Straight Ahead", priceDeltaCents: 7500, sortOrder: 150 },
+    { slug: "three-skull-rules", label: "3 Skull Rules", priceDeltaCents: 7500, sortOrder: 160 },
+    { slug: "day-of-the-dead", label: "Day Of The Dead", priceDeltaCents: 7500, sortOrder: 170 },
+    { slug: "skeleton-jokes", label: "Skeleton Jokes", priceDeltaCents: 7500, sortOrder: 180 },
+  ],
+};
+
+function createPumpkinGroups(): CatalogOptionGroup[] {
+  return [
+    {
+      slug: "add-ons",
+      name: "Add-ons",
+      description: "Upgrade triggering and control with attraction-friendly accessories.",
+      required: false,
+      selectionType: "multi",
+      sortOrder: 10,
+      metadata: {
+        helperText:
+          "Optional hardware that helps your prop integrate into a haunt, queue line, or trade show loop.",
+        whyItMatters:
+          "These add-ons make the prop easier to trigger, sync, and control in a professional setup.",
+      },
+      options: [
+        { slug: "motion-sensor-pir", label: "Motion Sensor (PIR)", priceDeltaCents: 3500, sortOrder: 10, description: "Trigger the prop when guests approach." },
+        { slug: "dmx-light", label: "DMX Light", priceDeltaCents: 3500, sortOrder: 20, description: "Sync lighting cues with the performance." },
+        { slug: "two-channel-remote", label: "2 Channel Remote", priceDeltaCents: 3500, sortOrder: 30, description: "Simple handheld trigger control." },
+        { slug: "four-channel-remote", label: "4 Channel Remote", priceDeltaCents: 4500, sortOrder: 40, description: "Expanded remote control for show operators." },
+        { slug: "three-channel-dmx-controller", label: "3-Channel DMX Controller", priceDeltaCents: 7500, sortOrder: 50, description: "Route motion into a larger lighting show." },
+      ],
+    },
+    commonIncludedRoutinesGroup,
+    commonPremiumRoutinesGroup,
+  ];
+}
+
+function createPumpkinTrioGroups(): CatalogOptionGroup[] {
+  return [
+    {
+      slug: "add-ons",
+      name: "Add-ons",
+      description: "Upgrade triggering and control with attraction-friendly accessories.",
+      required: false,
+      selectionType: "multi",
+      sortOrder: 10,
+      metadata: {
+        helperText:
+          "Optional hardware that helps your trio integrate into a haunt, queue line, or trade show loop.",
+        whyItMatters:
+          "These add-ons make the prop easier to trigger, sync, and control in a professional setup.",
+      },
+      options: [
+        { slug: "motion-sensor-pir", label: "Motion Sensor (PIR)", priceDeltaCents: 3500, sortOrder: 10, description: "Trigger the prop when guests approach." },
+        { slug: "dmx-light", label: "DMX Light", priceDeltaCents: 3500, sortOrder: 20, description: "Sync lighting cues with the performance." },
+        { slug: "three-channel-dmx-controller", label: "3-Channel DMX Controller", priceDeltaCents: 7500, sortOrder: 30, description: "Route motion into a larger lighting show." },
+      ],
+    },
+    commonIncludedRoutinesGroup,
+    commonPremiumRoutinesGroup,
   ];
 }
 
@@ -945,7 +1055,7 @@ export const catalogSeed: CatalogProduct[] = [
       "A high-energy animatronic pumpkin with internal glow effects, articulated dancing movement, and four included routines.",
     description:
       "The SkullTronix Dancing Pumpkin is built to stop traffic at haunted attractions, party installs, and trade show booths. It pairs a playful dancing motion with internal multi-color lighting and an easy-to-demo setup that can still scale up with show-control accessories.",
-    basePriceCents: 149500,
+    basePriceCents: 89900,
     imageUrl: "/products/dancing-pumpkin-hero.webp",
     active: true,
     metadata: {
@@ -999,13 +1109,14 @@ export const catalogSeed: CatalogProduct[] = [
       ],
       specs: [
         "Smooth dancing motion with internal glow effects",
-        "Standalone controller setup with optional DMX integration",
-        "Outdoor-rated extension available as an add-on",
+        "Approx. 12 x 10 x 16.5 inches / 9.11 lbs",
+        "3D-printed, durable and lightweight construction",
       ],
       inTheBox: [
         "Dancing Pumpkin animatronic",
-        "Standard 3-channel controller",
-        "Power cabling and setup guide",
+        "Black wood base",
+        "Power control module and speaker",
+        "4 included routines",
       ],
       supportItems: commonSupportItems,
       relatedProductSlugs: [
@@ -1014,111 +1125,7 @@ export const catalogSeed: CatalogProduct[] = [
         "skulltronix-skull",
       ],
     },
-    optionGroups: [
-      {
-        slug: "controller",
-        name: "Controller",
-        description: "Choose the control package for the install.",
-        required: true,
-        selectionType: "single",
-        sortOrder: 10,
-        metadata: {
-          helperText: "The standard controller is enough for demos. DMX is better for coordinated scenes.",
-          whyItMatters:
-            "Easily configure the perfect performer for your venue's needs.",
-        },
-        options: [
-          {
-            slug: "standard-3-channel-controller",
-            label: "Standard 3-Channel Controller",
-            description: "Basic motion loops and standalone operation",
-            priceDeltaCents: 0,
-            sortOrder: 10,
-            isDefault: true,
-          },
-          {
-            slug: "pro-dmx-interface",
-            label: "Pro DMX Interface",
-            description: "Sync with lighting, fog, and external triggers",
-            priceDeltaCents: 12500,
-            sortOrder: 20,
-          },
-        ],
-      },
-      {
-        slug: "included-routines",
-        name: "Included routine",
-        description: "Your default performance track.",
-        required: false,
-        selectionType: "multi",
-        sortOrder: 20,
-        metadata: {
-          display: "included-list",
-          helperText: "Included at no extra charge.",
-        },
-        options: [
-          {
-            slug: "witches-witches-witches",
-            label: "Witches Witches Witches",
-            priceDeltaCents: 0,
-            sortOrder: 10,
-            isDefault: true,
-          },
-        ],
-      },
-      {
-        slug: "premium-audio",
-        name: "Additional audio packs",
-        description: "Add extra themed content to your pumpkin build.",
-        required: false,
-        selectionType: "multi",
-        sortOrder: 30,
-        metadata: {
-          helperText: "Use these to tailor the prop for different seasonal moments or demos.",
-        },
-        options: [
-          {
-            slug: "killer-cinema-tunes",
-            label: "Killer Cinema Tunes",
-            priceDeltaCents: 7500,
-            sortOrder: 10,
-          },
-          {
-            slug: "swamp-witch-ambience",
-            label: "Swamp Witch Ambience",
-            priceDeltaCents: 7500,
-            sortOrder: 20,
-          },
-        ],
-      },
-      {
-        slug: "setup-extras",
-        name: "Setup extras",
-        description: "Pick the transport or install accessories you need.",
-        required: false,
-        selectionType: "multi",
-        sortOrder: 40,
-        metadata: {
-          helperText: "Useful for outdoor use, road cases, and repeated setup/teardown.",
-        },
-        options: [
-          {
-            slug: "50ft-extension",
-            label: "50ft Extension",
-            description: "Outdoor rated",
-            priceDeltaCents: 4500,
-            sortOrder: 10,
-          },
-          {
-            slug: "storage-case",
-            label: "Storage Case",
-            description: "Hard shell flight case",
-            priceDeltaCents: 29900,
-            sortOrder: 20,
-          },
-        ],
-      },
-    ],
+    optionGroups: [...createPumpkinGroups()],
   },
   {
     slug: "skulltronix-dancing-pumpkins-trio",
@@ -1127,7 +1134,7 @@ export const catalogSeed: CatalogProduct[] = [
       "A synchronized triple-pumpkin setup for buyers who want more spectacle per install.",
     description:
       "The trio takes the same visual idea as the single Dancing Pumpkin and stretches it into a larger scene piece. Choose the show-control package and the transport extras, then check out.",
-    basePriceCents: 377500,
+    basePriceCents: 299900,
     imageUrl:
       "https://festivemotion.com/wp-content/uploads/2025/08/Pumpkin-Trio.webp",
     active: true,
@@ -1164,13 +1171,14 @@ export const catalogSeed: CatalogProduct[] = [
       ],
       specs: [
         "Triple synchronized pumpkin rig",
-        "Large-format seasonal display piece",
-        "Optional DMX-ready show controller",
+        "Approx. 16 x 10 x 16.5 inches / 27.82 lbs",
+        "3D-printed, durable and lightweight construction",
       ],
       inTheBox: [
         "Three-pumpkin synchronized animatronic set",
-        "Standard sync controller",
-        "Power cabling and setup guide",
+        "Black wood base",
+        "Power control module and speaker",
+        "4 included routines",
       ],
       supportItems: commonSupportItems,
       relatedProductSlugs: [
@@ -1179,65 +1187,7 @@ export const catalogSeed: CatalogProduct[] = [
         "skulltronix-skull",
       ],
     },
-    optionGroups: [
-      {
-        slug: "show-control",
-        name: "Show control",
-        description: "Pick the controller package for the trio.",
-        required: true,
-        selectionType: "single",
-        sortOrder: 10,
-        metadata: {
-          helperText: "The standard package is suitable for standalone installs. DMX is better for coordinated scenes.",
-        },
-        options: [
-          {
-            slug: "standard-sync-controller",
-            label: "Standard Sync Controller",
-            priceDeltaCents: 0,
-            sortOrder: 10,
-            isDefault: true,
-          },
-          {
-            slug: "dmx-show-controller",
-            label: "DMX Show Controller",
-            priceDeltaCents: 19500,
-            sortOrder: 20,
-          },
-        ],
-      },
-      {
-        slug: "transport-extras",
-        name: "Transport extras",
-        description: "Add support gear for repeat seasonal setup.",
-        required: false,
-        selectionType: "multi",
-        sortOrder: 20,
-        metadata: {
-          helperText: "These are the most practical upgrades for teams moving the trio between installs.",
-        },
-        options: [
-          {
-            slug: "weatherproof-extension-kit",
-            label: "Weatherproof Extension Kit",
-            priceDeltaCents: 6500,
-            sortOrder: 10,
-          },
-          {
-            slug: "rolling-road-case",
-            label: "Rolling Road Case",
-            priceDeltaCents: 49900,
-            sortOrder: 20,
-          },
-          {
-            slug: "spare-lighting-module",
-            label: "Spare Lighting Module",
-            priceDeltaCents: 8500,
-            sortOrder: 30,
-          },
-        ],
-      },
-    ],
+    optionGroups: [...createPumpkinTrioGroups()],
   },
 ];
 
