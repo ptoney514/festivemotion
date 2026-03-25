@@ -265,9 +265,8 @@ export async function POST(request: Request) {
         message: error instanceof Error ? error.message : "Unknown Stripe error",
       });
 
-      const stripeMessage = error instanceof Error ? error.message : "Unknown error";
       return NextResponse.json(
-        { error: `Checkout could not be created: ${stripeMessage}` },
+        { error: "Checkout could not be created." },
         { status: 500 },
       );
     }
