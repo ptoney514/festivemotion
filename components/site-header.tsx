@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/products", label: "Products" },
   { href: "/add-ons", label: "Add-ons" },
   { href: "/why-festivemotion", label: "Why FestiveMotion" },
+  { href: "/safety", label: "Safety Guidelines" },
   { href: "/contact", label: "Contact" },
 ];
 
