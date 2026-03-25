@@ -17,6 +17,7 @@ const footerColumns = [
     title: "Support",
     items: [
       { href: "/contact", label: "Email Support" },
+      { href: "/safety", label: "Safety & Usage" },
       { href: "tel:4022531991", label: "Call Sales" },
       { href: "/products", label: "Configure a Build" },
     ],
