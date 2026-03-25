@@ -3,6 +3,7 @@ import { desc, eq, inArray } from "drizzle-orm";
 import { configurations, orderEvents, orderItems, orders, products } from "@/lib/schema";
 import { getDb } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
+import { sendCustomerConfirmationEmail, sendOrderEmail } from "@/lib/email";
 import type { ConfigurationSnapshot } from "@/lib/types";
 
 type OrderRecord = Awaited<ReturnType<typeof getOrderBySessionId>>;
@@ -144,6 +145,81 @@ export async function getSuccessSummary(sessionId: string) {
 
   if (fromDatabase) {
     const items = await getOrderItemsByOrderId(fromDatabase.order.id);
+
+    // If order is still pending, check Stripe and confirm payment + send emails
+    if (fromDatabase.order.status === "pending") {
+      const stripe = getStripe();
+      if (stripe) {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(sessionId);
+          if (session.payment_status === "paid") {
+            const db = getDb();
+            if (db) {
+              const amountTotalCents = session.amount_total ?? 0;
+              const nextStatus =
+                amountTotalCents === fromDatabase.order.amountTotalCents ? "paid" : "amount_mismatch";
+
+              await db
+                .update(orders)
+                .set({
+                  status: nextStatus,
+                  stripePaymentIntentId:
+                    typeof session.payment_intent === "string" ? session.payment_intent : null,
+                })
+                .where(eq(orders.id, fromDatabase.order.id));
+
+              await recordOrderEvent(fromDatabase.order.id, "checkout.session.completed_via_success_page", {
+                sessionId: session.id,
+                amountTotalCents,
+              });
+
+              // Send confirmation emails
+              const customerEmail = fromDatabase.order.customerEmail;
+              const snapshot = getConfigurationSnapshot(fromDatabase);
+
+              try {
+                await sendOrderEmail({
+                  orderId: fromDatabase.order.id,
+                  amountTotalCents,
+                  customerEmail,
+                  productName: snapshot?.productName ?? fromDatabase.product?.name ?? "FestiveMotion order",
+                  items: items.map((i) => ({
+                    label: i.label,
+                    quantity: i.quantity,
+                    totalCents: i.totalCents,
+                  })),
+                });
+              } catch (err) {
+                console.error("Store notification email failed:", err);
+              }
+
+              if (customerEmail && nextStatus === "paid") {
+                try {
+                  await sendCustomerConfirmationEmail({
+                    orderId: fromDatabase.order.id,
+                    amountTotalCents,
+                    customerEmail,
+                    customerName: fromDatabase.order.customerName ?? null,
+                    shippingAddress: fromDatabase.order.shippingAddress as { street: string; apt?: string; city: string; state: string; zip: string; country: string } | null,
+                    items: items.map((i) => ({
+                      label: i.label,
+                      quantity: i.quantity,
+                      totalCents: i.totalCents,
+                    })),
+                  });
+                } catch (err) {
+                  console.error("Customer confirmation email failed:", err);
+                }
+              }
+
+              fromDatabase.order.status = nextStatus;
+            }
+          }
+        } catch {
+          // Stripe retrieval failed — show processing state
+        }
+      }
+    }
 
     return {
       state:
