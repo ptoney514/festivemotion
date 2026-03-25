@@ -54,18 +54,18 @@ describe("calculatePrice", () => {
     });
 
     expect(priced.valid).toBe(true);
-    expect(priced.totalCents).toBe(150900);
+    expect(priced.totalCents).toBe(158400);
     expect(priced.lineItems.some((item) => item.label.includes("Configured build"))).toBe(
       true,
     );
   });
 
   it("fails when required selections are missing", () => {
-    const product = getProduct("skulltronix-dancing-pumpkin");
+    const product = getProduct("skulltronix-skull-bare-bones");
     const priced = calculatePrice(product, {});
 
     expect(priced.valid).toBe(false);
-    expect(priced.errors).toContain("Controller is required.");
+    expect(priced.errors).toContain("Character is required.");
   });
 
   it("fails when a single-select group receives multiple values", () => {
