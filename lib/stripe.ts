@@ -6,16 +6,17 @@ declare global {
 }
 
 export function hasStripeServerEnv() {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
 }
 
 export function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!key) {
     return null;
   }
 
   if (!globalThis.__festiveMotionStripe) {
-    globalThis.__festiveMotionStripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    globalThis.__festiveMotionStripe = new Stripe(key, {
       appInfo: {
         name: "FestiveMotion Storefront",
       },
