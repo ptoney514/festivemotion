@@ -245,9 +245,6 @@ export async function POST(request: Request) {
         ...(stripeCustomerId
           ? { customer: stripeCustomerId }
           : { customer_email: customerEmail }),
-        payment_intent_data: {
-          receipt_email: customerEmail,
-        },
         metadata: {
           orderId: order.id,
           customerName: customerName ?? "",
@@ -283,6 +280,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ url: session.url });
     } catch (error) {
+      console.error("Stripe checkout session creation failed:", error);
       Sentry.captureException(error);
 
       await db
