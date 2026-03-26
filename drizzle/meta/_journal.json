@@ -57,6 +57,13 @@
       "when": 1774486033964,
       "tag": "0007_purple_krista_starr",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1774489008174,
+      "tag": "0008_regular_warbird",
+      "breakpoints": true
     }
   ]
 }
