@@ -658,6 +658,13 @@ export function CheckoutForm() {
           {fulfillmentMethod === "shipping" && (
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
             <label className="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                checked={shipToDifferent}
+                onChange={(e) => setShipToDifferent(e.target.checked)}
+                className="sr-only"
+                aria-label="Ship to a different address"
+              />
               <span
                 className={`flex size-5 shrink-0 items-center justify-center rounded-[6px] border transition ${
                   shipToDifferent
@@ -675,13 +682,6 @@ export function CheckoutForm() {
                 Ship to a different address?
               </span>
             </label>
-            <input
-              type="checkbox"
-              checked={shipToDifferent}
-              onChange={(e) => setShipToDifferent(e.target.checked)}
-              className="sr-only"
-              aria-label="Ship to a different address"
-            />
 
             {shipToDifferent && (
               <div className="mt-6 space-y-3">
