@@ -6,8 +6,11 @@ export const dynamic = "force-dynamic";
 import { getAccessoryBySlug } from "@/lib/accessories";
 import { getCatalogProductBySlug } from "@/lib/catalog";
 import { getDb } from "@/lib/db";
+import { sendOrderEmail, sendCustomerConfirmationEmail } from "@/lib/email";
 import { recordOrderEvent } from "@/lib/orders";
 import { calculatePrice } from "@/lib/pricing";
+import { validatePromoCode, calculateDiscount, incrementPromoCodeUsage } from "@/lib/promo-codes";
+import type { PromoCodeRecord } from "@/lib/promo-codes";
 import { configurations, orderItems, orders } from "@/lib/schema";
 import { getSiteUrl, getStripe } from "@/lib/stripe";
 import { cartCheckoutRequestSchema } from "@/lib/validators";
@@ -24,7 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
   }
 
-  const { customerEmail, customerName, customerPhone, shippingAddress } = parsed.data;
+  const { customerEmail, customerName, customerPhone, shippingAddress, promoCode: promoCodeInput } = parsed.data;
 
   const db = getDb();
   const stripe = getStripe();
@@ -166,6 +169,21 @@ export async function POST(request: Request) {
     }
   }
 
+  // Validate & apply promo code if provided
+  let validatedPromo: PromoCodeRecord | null = null;
+  let discountAmountCents = 0;
+  let finalTotalCents = cartTotalCents;
+
+  if (promoCodeInput) {
+    const promoResult = await validatePromoCode(promoCodeInput);
+    if (!promoResult.valid) {
+      return NextResponse.json({ error: promoResult.error }, { status: 400 });
+    }
+    validatedPromo = promoResult.promoCode;
+    discountAmountCents = calculateDiscount(validatedPromo, cartTotalCents);
+    finalTotalCents = Math.max(0, cartTotalCents - discountAmountCents);
+  }
+
   // Create a Stripe Customer for order history / Customer Portal support
   let stripeCustomerId: string | null = null;
   if (stripe) {
@@ -211,12 +229,15 @@ export async function POST(request: Request) {
       configurationId: null,
       userId,
       status: "pending",
-      amountTotalCents: cartTotalCents,
+      amountTotalCents: finalTotalCents,
       customerEmail,
       customerName,
       customerPhone: customerPhone ?? null,
       shippingAddress,
       stripeCustomerId,
+      promoCodeId: validatedPromo?.id ?? null,
+      promoCode: validatedPromo?.code ?? null,
+      discountAmountCents: discountAmountCents > 0 ? discountAmountCents : null,
     })
     .returning();
 
@@ -234,7 +255,82 @@ export async function POST(request: Request) {
     })),
   );
 
+  // Handle 100% discount (free order) — skip Stripe entirely
+  if (finalTotalCents === 0 && discountAmountCents > 0) {
+    const freeSessionId = `free_${order.id}`;
+    await db
+      .update(orders)
+      .set({ status: "paid", stripeSessionId: freeSessionId })
+      .where(eq(orders.id, order.id));
+
+    if (validatedPromo) {
+      await incrementPromoCodeUsage(validatedPromo.id);
+    }
+
+    await recordOrderEvent(order.id, "free_order_completed", {
+      promoCode: validatedPromo?.code,
+      discountAmountCents,
+      originalTotalCents: cartTotalCents,
+    });
+
+    // Send emails for free order
+    const emailItems = orderItemValues.map((oi) => ({
+      label: oi.label,
+      quantity: oi.quantity,
+      totalCents: oi.totalCents,
+    }));
+
+    try {
+      await sendOrderEmail({
+        amountTotalCents: finalTotalCents,
+        customerEmail,
+        customerName,
+        customerPhone: customerPhone ?? null,
+        orderId: order.id,
+        productName: orderItemValues[0]?.label ?? "Order",
+        items: emailItems,
+        shippingAddress,
+        promoCode: validatedPromo?.code ?? null,
+        discountAmountCents,
+      });
+    } catch (err) {
+      console.error("Failed to send admin email for free order:", err);
+    }
+
+    try {
+      await sendCustomerConfirmationEmail({
+        orderId: order.id,
+        amountTotalCents: finalTotalCents,
+        customerEmail,
+        customerName,
+        shippingAddress,
+        items: emailItems,
+      });
+    } catch (err) {
+      console.error("Failed to send customer email for free order:", err);
+    }
+
+    return NextResponse.json({ url: `${getSiteUrl()}/success?session_id=${freeSessionId}` });
+  }
+
   if (stripe) {
+    // Create Stripe coupon for discount if applicable
+    let discountParams: { discounts: Stripe.Checkout.SessionCreateParams.Discount[] } | Record<string, never> = {};
+    if (discountAmountCents > 0 && finalTotalCents > 0) {
+      try {
+        const coupon = await stripe.coupons.create({
+          amount_off: discountAmountCents,
+          currency: "usd",
+          duration: "once",
+          name: `Promo: ${validatedPromo?.code}`,
+        });
+        discountParams = { discounts: [{ coupon: coupon.id }] };
+      } catch (err) {
+        console.error("Failed to create Stripe coupon:", err);
+        // Continue without discount applied in Stripe — the order total is already correct
+      }
+    }
+
     try {
       const session = await stripe.checkout.sessions.create(
         {
@@ -242,6 +338,7 @@ export async function POST(request: Request) {
         success_url: `${getSiteUrl()}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${getSiteUrl()}/cancel`,
         line_items: stripeLineItems,
+        ...discountParams,
         ...(stripeCustomerId
           ? { customer: stripeCustomerId }
           : { customer_email: customerEmail }),
@@ -258,6 +355,7 @@ export async function POST(request: Request) {
             .map((oi) => `${oi.quantity}x ${oi.label}`)
             .join(", ")
             .slice(0, 500),
+          ...(validatedPromo ? { promoCode: validatedPromo.code } : {}),
         },
         },
         { idempotencyKey: `checkout-${order.id}` },
@@ -270,8 +368,9 @@ export async function POST(request: Request) {
 
       await recordOrderEvent(order.id, "checkout_session_created", {
         sessionId: session.id,
-        amountTotalCents: cartTotalCents,
+        amountTotalCents: finalTotalCents,
         itemCount: orderItemValues.length,
+        ...(validatedPromo ? { promoCode: validatedPromo.code, discountAmountCents } : {}),
       });
 
       if (!session.url) {
@@ -317,10 +416,15 @@ export async function POST(request: Request) {
     .set({ status: "mock_paid", stripeSessionId: mockSessionId })
     .where(eq(orders.id, order.id));
 
+  if (validatedPromo) {
+    await incrementPromoCodeUsage(validatedPromo.id);
+  }
+
   await recordOrderEvent(order.id, "mock_checkout_completed", {
     mockSessionId,
-    amountTotalCents: cartTotalCents,
+    amountTotalCents: finalTotalCents,
     itemCount: orderItemValues.length,
+    ...(validatedPromo ? { promoCode: validatedPromo.code, discountAmountCents } : {}),
   });
 
   return NextResponse.json({ url: `${getSiteUrl()}/success?session_id=${mockSessionId}` });

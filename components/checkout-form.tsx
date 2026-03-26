@@ -153,6 +153,17 @@ export function CheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
+  // Promo code state
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    discountAmountCents: number;
+    discountType: string;
+    discountValue: number;
+  } | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState("");
+
   // Pre-fill from session
   useEffect(() => {
     if (session?.user) {
@@ -225,6 +236,46 @@ export function CheckoutForm() {
     [fields],
   );
 
+  async function handleApplyPromo() {
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoError("");
+    setPromoLoading(true);
+    try {
+      const res = await fetch("/api/promo-codes/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotalCents: totalCents }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setPromoError(data.error ?? "Invalid promo code");
+      } else {
+        setAppliedPromo({
+          code: data.code,
+          discountAmountCents: data.discountAmountCents,
+          discountType: data.discountType,
+          discountValue: data.discountValue,
+        });
+        setPromoInput("");
+        setPromoError("");
+      }
+    } catch {
+      setPromoError("Could not validate promo code");
+    } finally {
+      setPromoLoading(false);
+    }
+  }
+
+  function handleRemovePromo() {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError("");
+  }
+
+  const discountCents = appliedPromo?.discountAmountCents ?? 0;
+  const adjustedTotal = Math.max(0, totalCents - discountCents);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setCheckoutError("");
@@ -260,6 +311,7 @@ export function CheckoutForm() {
         customerEmail: fields.email,
         customerName: fields.name,
         customerPhone: fields.phone || undefined,
+        promoCode: appliedPromo?.code || undefined,
         shippingAddress: {
           street: fields.street,
           apt: fields.apt || undefined,
@@ -494,6 +546,15 @@ export function CheckoutForm() {
               totalCents={totalCents}
               isSubmitting={isSubmitting}
               onEditCart={openCart}
+              promoInput={promoInput}
+              onPromoInputChange={setPromoInput}
+              onApplyPromo={handleApplyPromo}
+              onRemovePromo={handleRemovePromo}
+              appliedPromo={appliedPromo}
+              promoLoading={promoLoading}
+              promoError={promoError}
+              discountCents={discountCents}
+              adjustedTotal={adjustedTotal}
             />
           </div>
         </div>
@@ -506,6 +567,15 @@ export function CheckoutForm() {
               totalCents={totalCents}
               isSubmitting={isSubmitting}
               onEditCart={openCart}
+              promoInput={promoInput}
+              onPromoInputChange={setPromoInput}
+              onApplyPromo={handleApplyPromo}
+              onRemovePromo={handleRemovePromo}
+              appliedPromo={appliedPromo}
+              promoLoading={promoLoading}
+              promoError={promoError}
+              discountCents={discountCents}
+              adjustedTotal={adjustedTotal}
             />
           </div>
         </div>
@@ -526,11 +596,29 @@ function OrderSummaryCard({
   totalCents,
   isSubmitting,
   onEditCart,
+  promoInput,
+  onPromoInputChange,
+  onApplyPromo,
+  onRemovePromo,
+  appliedPromo,
+  promoLoading,
+  promoError,
+  discountCents,
+  adjustedTotal,
 }: {
   items: CartItem[];
   totalCents: number;
   isSubmitting: boolean;
   onEditCart: () => void;
+  promoInput: string;
+  onPromoInputChange: (value: string) => void;
+  onApplyPromo: () => void;
+  onRemovePromo: () => void;
+  appliedPromo: { code: string; discountAmountCents: number } | null;
+  promoLoading: boolean;
+  promoError: string;
+  discountCents: number;
+  adjustedTotal: number;
 }) {
   return (
     <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
@@ -553,18 +641,79 @@ function OrderSummaryCard({
         ))}
       </div>
 
-      <div className="mt-6 space-y-2 border-t border-white/10 pt-4">
+      {/* Promo Code Input */}
+      <div className="mt-4 border-t border-white/10 pt-4">
+        {appliedPromo ? (
+          <div className="flex items-center justify-between rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <svg className="size-4 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium text-emerald-400">{appliedPromo.code}</span>
+              <span className="text-sm text-emerald-400/70">-{formatCurrency(appliedPromo.discountAmountCents)}</span>
+            </div>
+            <button
+              type="button"
+              onClick={onRemovePromo}
+              className="text-white/40 transition hover:text-white"
+              aria-label="Remove promo code"
+            >
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Promo code"
+                value={promoInput}
+                onChange={(e) => onPromoInputChange(e.target.value.toUpperCase())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onApplyPromo();
+                  }
+                }}
+                className={`flex-1 rounded-2xl border bg-black/20 px-4 py-2.5 text-sm text-white uppercase placeholder:text-white/30 placeholder:normal-case focus:border-[#ff5a1f] focus:outline-none focus:ring-1 focus:ring-[#ff5a1f] transition ${promoError ? "border-red-500/50" : "border-white/10"}`}
+              />
+              <button
+                type="button"
+                onClick={onApplyPromo}
+                disabled={promoLoading || !promoInput.trim()}
+                className="shrink-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 disabled:opacity-40"
+              >
+                {promoLoading ? "..." : "Apply"}
+              </button>
+            </div>
+            {promoError && (
+              <p className="mt-1.5 text-xs text-red-400">{promoError}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Pricing */}
+      <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-white/55">Subtotal</span>
           <span className="text-white">{formatCurrency(totalCents)}</span>
         </div>
+        {discountCents > 0 && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-emerald-400">Discount ({appliedPromo?.code})</span>
+            <span className="text-emerald-400">-{formatCurrency(discountCents)}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between text-sm">
           <span className="text-white/55">Shipping</span>
           <span className="text-white/55">Calculated at payment</span>
         </div>
         <div className="flex items-center justify-between border-t border-white/10 pt-3">
           <span className="text-sm font-semibold text-white">Total</span>
-          <span className="text-xl font-semibold text-white">{formatCurrency(totalCents)}</span>
+          <span className="text-xl font-semibold text-white">{formatCurrency(adjustedTotal)}</span>
         </div>
       </div>
 

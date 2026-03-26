@@ -67,10 +67,15 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                 <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
                   <p className="text-xs uppercase tracking-[0.16em] text-white/45">Total</p>
                   <p className="mt-2 text-xl font-semibold text-white">
-                    {summary.amountTotalCents
+                    {summary.amountTotalCents != null
                       ? formatCurrency(summary.amountTotalCents)
                       : "Unavailable"}
                   </p>
+                  {summary.promoCode && summary.discountAmountCents ? (
+                    <p className="mt-1 text-xs text-emerald-400">
+                      Promo {summary.promoCode} applied (-{formatCurrency(summary.discountAmountCents)})
+                    </p>
+                  ) : null}
                 </div>
               </div>
 

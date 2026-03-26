@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { sendCustomerConfirmationEmail, sendOrderEmail } from "@/lib/email";
 import { getDb } from "@/lib/db";
 import { getOrderById, getOrderBySessionId, getOrderItemsByOrderId, getConfigurationSnapshot, recordOrderEvent } from "@/lib/orders";
+import { incrementPromoCodeUsage } from "@/lib/promo-codes";
 import { orders } from "@/lib/schema";
 import { getStripe } from "@/lib/stripe";
 import * as Sentry from "@sentry/nextjs";
@@ -91,6 +92,15 @@ export async function POST(request: Request) {
 
     await recordOrderEvent(orderRecord.order.id, event.type, event.data.object);
 
+    // Increment promo code usage on successful payment
+    if (nextStatus === "paid" && orderRecord.order.promoCodeId) {
+      try {
+        await incrementPromoCodeUsage(orderRecord.order.promoCodeId);
+      } catch (err) {
+        console.error("Failed to increment promo code usage:", err);
+      }
+    }
+
     if (nextStatus === "paid" || nextStatus === "amount_mismatch") {
       const snapshot = getConfigurationSnapshot(orderRecord);
       const items = await getOrderItemsByOrderId(orderRecord.order.id);
@@ -102,12 +112,19 @@ export async function POST(request: Request) {
           orderId: orderRecord.order.id,
           amountTotalCents,
           customerEmail,
+          customerName: session.metadata?.customerName || null,
+          customerPhone: session.metadata?.customerPhone || null,
           productName: snapshot?.productName ?? orderRecord.product?.name ?? "FestiveMotion order",
           items: items.map((i) => ({
             label: i.label,
             quantity: i.quantity,
             totalCents: i.totalCents,
           })),
+          shippingAddress,
+          promoCode: orderRecord.order.promoCode ?? null,
+          discountAmountCents: orderRecord.order.discountAmountCents ?? null,
+          stripePaymentIntentId:
+            typeof session.payment_intent === "string" ? session.payment_intent : null,
         });
       } catch (err) {
         Sentry.captureException(err);

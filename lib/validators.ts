@@ -33,6 +33,7 @@ export const cartCheckoutRequestSchema = z.object({
   customerEmail: z.string().email("Please enter a valid email"),
   customerName: z.string().min(1, "Name is required").max(100),
   customerPhone: z.string().max(20).optional().or(z.literal("")),
+  promoCode: z.string().max(50).optional(),
   shippingAddress: z.object({
     street: z.string().min(1, "Street address is required").max(200),
     apt: z.string().max(50).optional(),

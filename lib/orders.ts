@@ -2,6 +2,7 @@ import "server-only";
 import { desc, eq, inArray } from "drizzle-orm";
 import { configurations, orderEvents, orderItems, orders, products } from "@/lib/schema";
 import { getDb } from "@/lib/db";
+import { incrementPromoCodeUsage } from "@/lib/promo-codes";
 import { getStripe } from "@/lib/stripe";
 import { sendCustomerConfirmationEmail, sendOrderEmail } from "@/lib/email";
 import type { ConfigurationSnapshot } from "@/lib/types";
@@ -137,7 +138,7 @@ export type OrderItemSummary = {
 
 export async function getSuccessSummary(sessionId: string) {
   const STRIPE_SESSION_RE = /^cs_(test|live)_[a-zA-Z0-9]+$/;
-  if (!sessionId.startsWith("mock_") && !STRIPE_SESSION_RE.test(sessionId)) {
+  if (!sessionId.startsWith("mock_") && !sessionId.startsWith("free_") && !STRIPE_SESSION_RE.test(sessionId)) {
     return { state: "not_found" as const };
   }
 
@@ -173,6 +174,15 @@ export async function getSuccessSummary(sessionId: string) {
                 amountTotalCents,
               });
 
+              // Increment promo code usage
+              if (nextStatus === "paid" && fromDatabase.order.promoCodeId) {
+                try {
+                  await incrementPromoCodeUsage(fromDatabase.order.promoCodeId);
+                } catch (err) {
+                  console.error("Failed to increment promo code usage:", err);
+                }
+              }
+
               // Send confirmation emails
               const customerEmail = fromDatabase.order.customerEmail;
               const snapshot = getConfigurationSnapshot(fromDatabase);
@@ -182,12 +192,19 @@ export async function getSuccessSummary(sessionId: string) {
                   orderId: fromDatabase.order.id,
                   amountTotalCents,
                   customerEmail,
+                  customerName: fromDatabase.order.customerName ?? null,
+                  customerPhone: fromDatabase.order.customerPhone ?? null,
                   productName: snapshot?.productName ?? fromDatabase.product?.name ?? "FestiveMotion order",
                   items: items.map((i) => ({
                     label: i.label,
                     quantity: i.quantity,
                     totalCents: i.totalCents,
                   })),
+                  shippingAddress: fromDatabase.order.shippingAddress as { street: string; apt?: string; city: string; state: string; zip: string; country: string } | null,
+                  promoCode: fromDatabase.order.promoCode ?? null,
+                  discountAmountCents: fromDatabase.order.discountAmountCents ?? null,
+                  stripePaymentIntentId:
+                    typeof session.payment_intent === "string" ? session.payment_intent : null,
                 });
               } catch (err) {
                 console.error("Store notification email failed:", err);
@@ -229,6 +246,8 @@ export async function getSuccessSummary(sessionId: string) {
       customerName: fromDatabase.order.customerName ?? null,
       shippingAddress: fromDatabase.order.shippingAddress ?? null,
       amountTotalCents: fromDatabase.order.amountTotalCents,
+      promoCode: fromDatabase.order.promoCode ?? null,
+      discountAmountCents: fromDatabase.order.discountAmountCents ?? null,
       productName: fromDatabase.product?.name ?? "FestiveMotion order",
       snapshot: getConfigurationSnapshot(fromDatabase),
       items: items.map((i) => ({
