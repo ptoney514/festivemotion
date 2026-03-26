@@ -80,7 +80,7 @@ export async function sendContactEmail(args: SendContactEmailArgs) {
     const resend = new Resend(apiKey);
 
     await resend.emails.send({
-      from: "FestiveMotion <orders@festivemotion.com>",
+      from: "FestiveMotion <orders@smallhr.app>",
       to: notifyEmail,
       replyTo: args.email,
       subject: `Contact: ${subjectLabel} from ${args.name}`,
@@ -282,7 +282,7 @@ export async function sendCustomerConfirmationEmail(args: SendCustomerConfirmati
     const resend = new Resend(apiKey);
 
     await resend.emails.send({
-      from: "FestiveMotion <orders@festivemotion.com>",
+      from: "FestiveMotion <orders@smallhr.app>",
       to: args.customerEmail,
       subject: `FestiveMotion Order Confirmation — ${args.orderId.slice(0, 8)}`,
       html: buildCustomerHtml(args),
@@ -307,7 +307,7 @@ export async function sendOrderEmail(args: SendOrderEmailArgs) {
     const resend = new Resend(apiKey);
 
     await resend.emails.send({
-      from: "FestiveMotion <orders@festivemotion.com>",
+      from: "FestiveMotion <orders@smallhr.app>",
       to: notifyEmail,
       subject: `New Order ${args.orderId.slice(0, 8)} — ${formatDollars(args.amountTotalCents)}`,
       text: buildPlainText(args),
