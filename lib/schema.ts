@@ -153,6 +153,28 @@ export const options = pgTable(
   }),
 );
 
+// ── Promo codes ─────────────────────────────────────────────────────────
+
+export const promoCodes = pgTable(
+  "promo_codes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: text("code").notNull(), // stored UPPERCASE
+    discountType: text("discount_type").notNull(), // "fixed_amount" | "percentage"
+    discountValue: integer("discount_value").notNull(), // cents for fixed_amount, 0-100 for percentage
+    isActive: boolean("is_active").notNull().default(true),
+    validFrom: timestamp("valid_from", { withTimezone: true }),
+    validTo: timestamp("valid_to", { withTimezone: true }),
+    maxUses: integer("max_uses"), // null = unlimited
+    currentUses: integer("current_uses").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    codeIndex: uniqueIndex("promo_codes_code_idx").on(table.code),
+  }),
+);
+
 export const configurations = pgTable("configurations", {
   id: uuid("id").defaultRandom().primaryKey(),
   productId: uuid("product_id")
@@ -178,6 +200,11 @@ export const orders = pgTable(
     customerName: text("customer_name"),
     customerPhone: text("customer_phone"),
     stripeCustomerId: text("stripe_customer_id"),
+    promoCodeId: uuid("promo_code_id").references(() => promoCodes.id, {
+      onDelete: "set null",
+    }),
+    promoCode: text("promo_code"),
+    discountAmountCents: integer("discount_amount_cents"),
     shippingAddress: jsonb("shipping_address").$type<{
       street: string;
       apt?: string;
@@ -277,6 +304,10 @@ export const optionsRelations = relations(options, ({ one }) => ({
   }),
 }));
 
+export const promoCodesRelations = relations(promoCodes, ({ many }) => ({
+  orders: many(orders),
+}));
+
 export const configurationsRelations = relations(configurations, ({ one, many }) => ({
   product: one(products, {
     fields: [configurations.productId],
@@ -293,6 +324,10 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, {
     fields: [orders.userId],
     references: [users.id],
+  }),
+  promoCodeRef: one(promoCodes, {
+    fields: [orders.promoCodeId],
+    references: [promoCodes.id],
   }),
   items: many(orderItems),
   events: many(orderEvents),
