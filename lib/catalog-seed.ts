@@ -1073,18 +1073,13 @@ export const catalogSeed: CatalogProduct[] = [
       gallery: [
         {
           type: "image",
-          src: "/images/placeholder-gallery.svg",
-          alt: "Gallery image placeholder.",
+          src: "https://festivemotion.com/wp-content/uploads/2025/08/skullkinvertical-1.webp",
+          alt: "SkullTronix Dancing Pumpkin animatronic front view.",
         },
         {
           type: "image",
-          src: "/images/placeholder-gallery.svg",
-          alt: "Gallery image placeholder.",
-        },
-        {
-          type: "image",
-          src: "/images/placeholder-gallery.svg",
-          alt: "Gallery image placeholder.",
+          src: "https://festivemotion.com/wp-content/uploads/2025/08/Pumpkin-Trio-2.webp",
+          alt: "Dancing Pumpkin alternate angle showing base and detail.",
         },
       ],
       featureCards: [
