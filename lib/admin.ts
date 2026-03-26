@@ -1,24 +1,46 @@
 import "server-only";
 
-import { auth } from "@/auth";
+import { cookies } from "next/headers";
+import { createHmac } from "crypto";
 
-export function isAdminEmail(email: string | null | undefined): boolean {
-  if (!email) return false;
-  const allowlist = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  return allowlist.includes(email.toLowerCase());
+const COOKIE_NAME = "fm_admin";
+
+function getAdminCode(): string {
+  return process.env.ADMIN_ACCESS_CODE ?? "";
 }
 
-/**
- * Check the current session for admin access.
- * Returns the session if admin, or null if not.
- */
-export async function getAdminSession() {
-  const session = await auth();
-  if (!session?.user?.email || !isAdminEmail(session.user.email)) {
-    return null;
-  }
-  return session;
+function getSecret(): string {
+  return process.env.AUTH_SECRET ?? "festivemotion-admin-fallback";
+}
+
+/** Create an HMAC token from the access code so the cookie can't be forged */
+export function createAdminToken(): string {
+  return createHmac("sha256", getSecret())
+    .update(getAdminCode())
+    .digest("hex");
+}
+
+/** Verify a submitted code matches the env var */
+export function verifyAccessCode(code: string): boolean {
+  const expected = getAdminCode();
+  if (!expected) return false;
+  return code.trim() === expected.trim();
+}
+
+/** Check if the current request has a valid admin cookie */
+export async function isAdminAuthenticated(): Promise<boolean> {
+  const adminCode = getAdminCode();
+  if (!adminCode) return false;
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (!token) return false;
+
+  return token === createAdminToken();
+}
+
+/** Alias used by API routes */
+export async function getAdminSession(): Promise<{ authenticated: true } | null> {
+  const isAdmin = await isAdminAuthenticated();
+  return isAdmin ? { authenticated: true } : null;
 }
