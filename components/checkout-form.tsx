@@ -174,6 +174,7 @@ export function CheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [shipToDifferent, setShipToDifferent] = useState(false);
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<"shipping" | "pickup" | null>(null);
 
   // Promo code state
   const [promoInput, setPromoInput] = useState("");
@@ -220,6 +221,11 @@ export function CheckoutForm() {
       })
       .catch(() => {});
   }, [session?.user]);
+
+  // Reset shipping toggle when switching to pickup
+  useEffect(() => {
+    if (fulfillmentMethod === "pickup") setShipToDifferent(false);
+  }, [fulfillmentMethod]);
 
   // Redirect if empty cart
   useEffect(() => {
@@ -298,7 +304,7 @@ export function CheckoutForm() {
 
   const discountCents = appliedPromo?.discountAmountCents ?? 0;
   const subtotalAfterDiscount = Math.max(0, totalCents - discountCents);
-  const shippingFeeCents = SHIPPING_FEE_CENTS;
+  const shippingFeeCents = fulfillmentMethod === "shipping" ? SHIPPING_FEE_CENTS : 0;
   const taxableAmount = subtotalAfterDiscount + shippingFeeCents;
   const taxAmountCents = Math.round(taxableAmount * TAX_RATE);
   const grandTotal = subtotalAfterDiscount + shippingFeeCents + taxAmountCents;
@@ -307,13 +313,20 @@ export function CheckoutForm() {
     e.preventDefault();
     setCheckoutError("");
 
-    const fieldErrors = validateAll(fields, shipToDifferent);
+    const fieldErrors = validateAll(fields, shipToDifferent && fulfillmentMethod === "shipping");
+    if (!fulfillmentMethod) {
+      fieldErrors.fulfillmentMethod = "Please select a delivery method";
+    }
     if (Object.keys(fieldErrors).length > 0) {
       setErrors(fieldErrors);
       // Focus first invalid field
       const firstKey = Object.keys(fieldErrors)[0];
-      const el = formRef.current?.querySelector<HTMLElement>(`[name="${firstKey}"]`);
-      el?.focus();
+      if (firstKey === "fulfillmentMethod") {
+        document.getElementById("fulfillment-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        const el = formRef.current?.querySelector<HTMLElement>(`[name="${firstKey}"]`);
+        el?.focus();
+      }
       return;
     }
 
@@ -347,10 +360,11 @@ export function CheckoutForm() {
           zip: fields.zip,
           country: "US",
         },
+        fulfillmentMethod,
         orderNotes: fields.orderNotes || undefined,
       };
 
-      if (shipToDifferent) {
+      if (fulfillmentMethod === "shipping" && shipToDifferent) {
         payload.shippingAddress = {
           street: fields.shipStreet,
           apt: fields.shipApt || undefined,
@@ -578,7 +592,70 @@ export function CheckoutForm() {
             </div>
           </div>
 
+          {/* Fulfillment Method */}
+          <div
+            id="fulfillment-section"
+            className={`rounded-[32px] border p-8 transition ${
+              errors.fulfillmentMethod
+                ? "border-red-500/50 bg-white/[0.03]"
+                : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
+              Delivery
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.04em] text-white">
+              How would you like to receive your order?
+            </h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFulfillmentMethod("shipping");
+                  setErrors((prev) => { const next = { ...prev }; delete next.fulfillmentMethod; return next; });
+                }}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  fulfillmentMethod === "shipping"
+                    ? "border-[#ff5a1f] bg-[#ff5a1f]/10"
+                    : "border-white/10 bg-black/20 hover:border-white/20"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="size-5 text-white/70" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                  </svg>
+                  <p className="text-sm font-semibold text-white">Ship to me</p>
+                </div>
+                <p className="mt-1 text-xs text-white/50">$35 flat-rate shipping</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFulfillmentMethod("pickup");
+                  setErrors((prev) => { const next = { ...prev }; delete next.fulfillmentMethod; return next; });
+                }}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  fulfillmentMethod === "pickup"
+                    ? "border-[#ff5a1f] bg-[#ff5a1f]/10"
+                    : "border-white/10 bg-black/20 hover:border-white/20"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="size-5 text-white/70" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016A3.001 3.001 0 0021 9.349m-18 0a2.999 2.999 0 00.308-1.317l1.062-5.31A2.25 2.25 0 016.587 1.5h10.826a2.25 2.25 0 012.217 1.722l1.062 5.31c.08.399.08.812 0 1.21" />
+                  </svg>
+                  <p className="text-sm font-semibold text-white">In-Store / Event Pickup</p>
+                </div>
+                <p className="mt-1 text-xs text-white/50">Free — no shipping charge</p>
+              </button>
+            </div>
+            {errors.fulfillmentMethod && (
+              <p className="mt-2 text-xs text-red-400">{errors.fulfillmentMethod}</p>
+            )}
+          </div>
+
           {/* Ship to different address */}
+          {fulfillmentMethod === "shipping" && (
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
             <label className="flex cursor-pointer items-center gap-3">
               <span
@@ -706,6 +783,7 @@ export function CheckoutForm() {
               </div>
             )}
           </div>
+          )}
 
           {/* Order Notes */}
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
@@ -750,6 +828,7 @@ export function CheckoutForm() {
               shippingFeeCents={shippingFeeCents}
               taxAmountCents={taxAmountCents}
               grandTotal={grandTotal}
+              fulfillmentMethod={fulfillmentMethod}
             />
           </div>
         </div>
@@ -773,6 +852,7 @@ export function CheckoutForm() {
               shippingFeeCents={shippingFeeCents}
               taxAmountCents={taxAmountCents}
               grandTotal={grandTotal}
+              fulfillmentMethod={fulfillmentMethod}
             />
           </div>
         </div>
@@ -804,6 +884,7 @@ function OrderSummaryCard({
   shippingFeeCents,
   taxAmountCents,
   grandTotal,
+  fulfillmentMethod,
 }: {
   items: CartItem[];
   totalCents: number;
@@ -820,6 +901,7 @@ function OrderSummaryCard({
   shippingFeeCents: number;
   taxAmountCents: number;
   grandTotal: number;
+  fulfillmentMethod: "shipping" | "pickup" | null;
 }) {
   return (
     <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
@@ -910,7 +992,13 @@ function OrderSummaryCard({
         )}
         <div className="flex items-center justify-between text-sm">
           <span className="text-white/55">Shipping</span>
-          <span className="text-white">Flat rate: {formatCurrency(shippingFeeCents)}</span>
+          <span className="text-white">
+            {fulfillmentMethod === null
+              ? "Select delivery method"
+              : fulfillmentMethod === "pickup"
+                ? "Free — In-store pickup"
+                : `Flat rate: ${formatCurrency(shippingFeeCents)}`}
+          </span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-white/55">Sales Tax — 7%</span>
@@ -924,7 +1012,7 @@ function OrderSummaryCard({
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !fulfillmentMethod}
         className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#ff5a1f] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(255,90,31,0.35)] transition hover:bg-[#e04f1a] disabled:opacity-60"
       >
         {isSubmitting && (

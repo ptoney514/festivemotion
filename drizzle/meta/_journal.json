@@ -64,6 +64,13 @@
       "when": 1774489008174,
       "tag": "0008_regular_warbird",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1774528073119,
+      "tag": "0009_eminent_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }
