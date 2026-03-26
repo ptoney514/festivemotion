@@ -330,6 +330,8 @@ export function CheckoutForm() {
       return;
     }
 
+    if (!fulfillmentMethod) return; // unreachable — narrows type for payload below
+
     setIsSubmitting(true);
 
     try {
