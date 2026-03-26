@@ -24,8 +24,13 @@ type SendOrderEmailArgs = {
   productName: string;
   items?: OrderEmailItem[];
   shippingAddress?: ShippingAddress | null;
+  billingAddress?: ShippingAddress | null;
+  orderNotes?: string | null;
   promoCode?: string | null;
   discountAmountCents?: number | null;
+  subtotalCents?: number | null;
+  shippingFeeCents?: number | null;
+  taxAmountCents?: number | null;
   stripePaymentIntentId?: string | null;
 };
 
@@ -60,20 +65,38 @@ function buildAdminPlainText(args: SendOrderEmailArgs): string {
 
   if (args.items && args.items.length > 0) {
     lines.push(`Items:`);
-    let subtotalCents = 0;
+    let subtotalCents = args.subtotalCents ?? 0;
+    if (!args.subtotalCents) {
+      subtotalCents = 0;
+      for (const item of args.items) subtotalCents += item.totalCents;
+    }
     for (const item of args.items) {
       lines.push(`  - ${item.label} x${item.quantity} — ${formatDollars(item.totalCents)}`);
-      subtotalCents += item.totalCents;
     }
     lines.push(``);
     lines.push(`Subtotal: ${formatDollars(subtotalCents)}`);
     if (args.promoCode && args.discountAmountCents) {
       lines.push(`Promo: ${args.promoCode} — -${formatDollars(args.discountAmountCents)}`);
     }
+    if (args.shippingFeeCents != null) {
+      lines.push(`Shipping: ${formatDollars(args.shippingFeeCents)}`);
+    }
+    if (args.taxAmountCents != null) {
+      lines.push(`Sales Tax (7%): ${formatDollars(args.taxAmountCents)}`);
+    }
     lines.push(`Total: ${formatDollars(args.amountTotalCents)}`);
   } else {
     lines.push(`Product: ${args.productName}`);
     lines.push(`Total: ${formatDollars(args.amountTotalCents)}`);
+  }
+
+  if (args.billingAddress) {
+    const a = args.billingAddress;
+    lines.push(``, `Billing:`);
+    lines.push(`  ${a.street}`);
+    if (a.apt) lines.push(`  ${a.apt}`);
+    lines.push(`  ${a.city}, ${a.state} ${a.zip}`);
+    lines.push(`  ${a.country}`);
   }
 
   if (args.shippingAddress) {
@@ -83,6 +106,11 @@ function buildAdminPlainText(args: SendOrderEmailArgs): string {
     if (a.apt) lines.push(`  ${a.apt}`);
     lines.push(`  ${a.city}, ${a.state} ${a.zip}`);
     lines.push(`  ${a.country}`);
+  }
+
+  if (args.orderNotes) {
+    lines.push(``, `Order Notes:`);
+    lines.push(`  ${args.orderNotes}`);
   }
 
   lines.push(``, `---`, `This is an automated notification from the FestiveMotion storefront.`);
@@ -164,6 +192,22 @@ function buildAdminHtml(args: SendOrderEmailArgs): string {
         </tr>`;
   }
 
+  if (args.shippingFeeCents != null) {
+    pricingRows += `
+        <tr>
+          <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Shipping</td>
+          <td style="padding:4px 0 0;color:#ccc;font-size:14px;text-align:right">${formatDollars(args.shippingFeeCents)}</td>
+        </tr>`;
+  }
+
+  if (args.taxAmountCents != null) {
+    pricingRows += `
+        <tr>
+          <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Sales Tax (7%)</td>
+          <td style="padding:4px 0 0;color:#ccc;font-size:14px;text-align:right">${formatDollars(args.taxAmountCents)}</td>
+        </tr>`;
+  }
+
   pricingRows += `
         <tr>
           <td colspan="2" style="padding:12px 0 0;color:#fff;font-size:16px;font-weight:700">Total</td>
@@ -189,7 +233,18 @@ function buildAdminHtml(args: SendOrderEmailArgs): string {
     : `<p style="color:#ccc;font-size:14px">Product: ${escapeHtml(args.productName)}</p>
        <p style="color:#ff5a1f;font-size:16px;font-weight:700">Total: ${formatDollars(args.amountTotalCents)}</p>`;
 
-  // Shipping address block
+  // Address blocks
+  const billingBlock = args.billingAddress
+    ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
+        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Billing Address</p>
+        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">
+          ${escapeHtml(args.billingAddress.street)}${args.billingAddress.apt ? `<br>${escapeHtml(args.billingAddress.apt)}` : ""}<br>
+          ${escapeHtml(args.billingAddress.city)}, ${escapeHtml(args.billingAddress.state)} ${escapeHtml(args.billingAddress.zip)}<br>
+          ${escapeHtml(args.billingAddress.country)}
+        </p>
+      </div>`
+    : "";
+
   const shippingBlock = args.shippingAddress
     ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
         <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Shipping Address</p>
@@ -198,6 +253,13 @@ function buildAdminHtml(args: SendOrderEmailArgs): string {
           ${escapeHtml(args.shippingAddress.city)}, ${escapeHtml(args.shippingAddress.state)} ${escapeHtml(args.shippingAddress.zip)}<br>
           ${escapeHtml(args.shippingAddress.country)}
         </p>
+      </div>`
+    : "";
+
+  const notesBlock = args.orderNotes
+    ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
+        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Order Notes</p>
+        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">${escapeHtml(args.orderNotes)}</p>
       </div>`
     : "";
 
@@ -223,7 +285,9 @@ function buildAdminHtml(args: SendOrderEmailArgs): string {
     <!-- Items table -->
     ${itemsTable}
 
+    ${billingBlock}
     ${shippingBlock}
+    ${notesBlock}
 
     <!-- Footer -->
     <div style="margin-top:32px;padding-top:24px;border-top:1px solid #222;text-align:center">
@@ -304,7 +368,14 @@ type SendCustomerConfirmationEmailArgs = {
   customerEmail: string;
   customerName: string | null;
   shippingAddress: ShippingAddress | null;
+  billingAddress?: ShippingAddress | null;
+  orderNotes?: string | null;
   items: OrderEmailItem[];
+  promoCode?: string | null;
+  discountAmountCents?: number | null;
+  subtotalCents?: number | null;
+  shippingFeeCents?: number | null;
+  taxAmountCents?: number | null;
 };
 
 function buildCustomerPlainText(args: SendCustomerConfirmationEmailArgs): string {
@@ -328,7 +399,28 @@ function buildCustomerPlainText(args: SendCustomerConfirmationEmailArgs): string
     lines.push(``);
   }
 
+  if (args.subtotalCents != null) {
+    lines.push(`Subtotal: ${formatDollars(args.subtotalCents)}`);
+  }
+  if (args.promoCode && args.discountAmountCents) {
+    lines.push(`Promo: ${args.promoCode} — -${formatDollars(args.discountAmountCents)}`);
+  }
+  if (args.shippingFeeCents != null) {
+    lines.push(`Shipping: ${formatDollars(args.shippingFeeCents)}`);
+  }
+  if (args.taxAmountCents != null) {
+    lines.push(`Sales Tax (7%): ${formatDollars(args.taxAmountCents)}`);
+  }
   lines.push(`Total: ${formatDollars(args.amountTotalCents)}`);
+
+  if (args.billingAddress) {
+    const a = args.billingAddress;
+    lines.push(``, `Billing:`);
+    lines.push(`  ${a.street}`);
+    if (a.apt) lines.push(`  ${a.apt}`);
+    lines.push(`  ${a.city}, ${a.state} ${a.zip}`);
+    lines.push(`  ${a.country}`);
+  }
 
   if (args.shippingAddress) {
     const a = args.shippingAddress;
@@ -337,6 +429,11 @@ function buildCustomerPlainText(args: SendCustomerConfirmationEmailArgs): string
     if (a.apt) lines.push(`  ${a.apt}`);
     lines.push(`  ${a.city}, ${a.state} ${a.zip}`);
     lines.push(`  ${a.country}`);
+  }
+
+  if (args.orderNotes) {
+    lines.push(``, `Order Notes:`);
+    lines.push(`  ${args.orderNotes}`);
   }
 
   lines.push(
@@ -422,6 +519,22 @@ function buildCustomerHtml(args: SendCustomerConfirmationEmailArgs): string {
         ${itemRows}
       </tbody>
       <tfoot>
+        ${args.subtotalCents != null ? `<tr>
+          <td colspan="2" style="padding:8px 0 0;color:#aaa;font-size:14px">Subtotal</td>
+          <td style="padding:8px 0 0;color:#ccc;font-size:14px;text-align:right">${formatDollars(args.subtotalCents)}</td>
+        </tr>` : ""}
+        ${args.promoCode && args.discountAmountCents ? `<tr>
+          <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Promo: <span style="color:#ff5a1f">${escapeHtml(args.promoCode)}</span></td>
+          <td style="padding:4px 0 0;color:#4ade80;font-size:14px;text-align:right">-${formatDollars(args.discountAmountCents)}</td>
+        </tr>` : ""}
+        ${args.shippingFeeCents != null ? `<tr>
+          <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Shipping</td>
+          <td style="padding:4px 0 0;color:#ccc;font-size:14px;text-align:right">${formatDollars(args.shippingFeeCents)}</td>
+        </tr>` : ""}
+        ${args.taxAmountCents != null ? `<tr>
+          <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Sales Tax (7%)</td>
+          <td style="padding:4px 0 0;color:#ccc;font-size:14px;text-align:right">${formatDollars(args.taxAmountCents)}</td>
+        </tr>` : ""}
         <tr>
           <td colspan="2" style="padding:12px 0 0;color:#fff;font-size:16px;font-weight:700">Total</td>
           <td style="padding:12px 0 0;color:#ff5a1f;font-size:16px;font-weight:700;text-align:right">${formatDollars(args.amountTotalCents)}</td>
@@ -429,7 +542,19 @@ function buildCustomerHtml(args: SendCustomerConfirmationEmailArgs): string {
       </tfoot>
     </table>
 
+    ${args.billingAddress ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
+        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Billing Address</p>
+        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">
+          ${escapeHtml(args.billingAddress.street)}${args.billingAddress.apt ? `<br>${escapeHtml(args.billingAddress.apt)}` : ""}<br>
+          ${escapeHtml(args.billingAddress.city)}, ${escapeHtml(args.billingAddress.state)} ${escapeHtml(args.billingAddress.zip)}<br>
+          ${escapeHtml(args.billingAddress.country)}
+        </p>
+      </div>` : ""}
     ${shippingBlock}
+    ${args.orderNotes ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
+        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Order Notes</p>
+        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">${escapeHtml(args.orderNotes)}</p>
+      </div>` : ""}
 
     <!-- Support -->
     <div style="margin-top:32px;padding:16px;background:#111;border-radius:8px;text-align:center">

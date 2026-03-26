@@ -65,17 +65,41 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                   </p>
                 </div>
                 <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
-                  <p className="text-xs uppercase tracking-[0.16em] text-white/45">Total</p>
-                  <p className="mt-2 text-xl font-semibold text-white">
-                    {summary.amountTotalCents != null
-                      ? formatCurrency(summary.amountTotalCents)
-                      : "Unavailable"}
-                  </p>
-                  {summary.promoCode && summary.discountAmountCents ? (
-                    <p className="mt-1 text-xs text-emerald-400">
-                      Promo {summary.promoCode} applied (-{formatCurrency(summary.discountAmountCents)})
-                    </p>
-                  ) : null}
+                  <p className="text-xs uppercase tracking-[0.16em] text-white/45">Pricing</p>
+                  <div className="mt-3 space-y-1.5">
+                    {summary.subtotalCents != null ? (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/50">Subtotal</span>
+                        <span className="text-white">{formatCurrency(summary.subtotalCents)}</span>
+                      </div>
+                    ) : null}
+                    {summary.promoCode && summary.discountAmountCents ? (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-emerald-400">Promo {summary.promoCode}</span>
+                        <span className="text-emerald-400">-{formatCurrency(summary.discountAmountCents)}</span>
+                      </div>
+                    ) : null}
+                    {summary.shippingFeeCents != null ? (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/50">Shipping</span>
+                        <span className="text-white">{formatCurrency(summary.shippingFeeCents)}</span>
+                      </div>
+                    ) : null}
+                    {summary.taxAmountCents != null ? (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/50">Sales Tax (7%)</span>
+                        <span className="text-white">{formatCurrency(summary.taxAmountCents)}</span>
+                      </div>
+                    ) : null}
+                    <div className="flex justify-between border-t border-white/10 pt-2 text-base">
+                      <span className="font-semibold text-white">Total</span>
+                      <span className="font-semibold text-white">
+                        {summary.amountTotalCents != null
+                          ? formatCurrency(summary.amountTotalCents)
+                          : "Unavailable"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -98,12 +122,26 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                 </div>
               ) : null}
 
-              {(summary.customerName || summary.shippingAddress) ? (
+              {(summary.customerName || summary.shippingAddress || summary.billingAddress) ? (
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   {summary.customerName ? (
                     <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
                       <p className="text-xs uppercase tracking-[0.16em] text-white/45">Customer</p>
                       <p className="mt-2 text-base font-semibold text-white">{summary.customerName}</p>
+                    </div>
+                  ) : null}
+                  {summary.billingAddress ? (
+                    <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                      <p className="text-xs uppercase tracking-[0.16em] text-white/45">Billing address</p>
+                      <p className="mt-2 text-sm leading-6 text-white">
+                        {summary.billingAddress.street}
+                        {summary.billingAddress.apt ? `, ${summary.billingAddress.apt}` : ""}
+                        <br />
+                        {summary.billingAddress.city}, {summary.billingAddress.state}{" "}
+                        {summary.billingAddress.zip}
+                        <br />
+                        {summary.billingAddress.country}
+                      </p>
                     </div>
                   ) : null}
                   {summary.shippingAddress ? (
@@ -120,6 +158,13 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                       </p>
                     </div>
                   ) : null}
+                </div>
+              ) : null}
+
+              {summary.orderNotes ? (
+                <div className="mt-4 rounded-[24px] border border-white/10 bg-black/20 p-5">
+                  <p className="text-xs uppercase tracking-[0.16em] text-white/45">Order Notes</p>
+                  <p className="mt-2 text-sm text-white/70">{summary.orderNotes}</p>
                 </div>
               ) : null}
 

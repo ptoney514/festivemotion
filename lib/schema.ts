@@ -213,6 +213,18 @@ export const orders = pgTable(
       zip: string;
       country: string;
     }>(),
+    billingAddress: jsonb("billing_address").$type<{
+      street: string;
+      apt?: string;
+      city: string;
+      state: string;
+      zip: string;
+      country: string;
+    }>(),
+    orderNotes: text("order_notes"),
+    subtotalCents: integer("subtotal_cents"),
+    shippingFeeCents: integer("shipping_fee_cents"),
+    taxAmountCents: integer("tax_amount_cents"),
     amountTotalCents: integer("amount_total_cents").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },

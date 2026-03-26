@@ -152,6 +152,38 @@ export default async function OrdersPage() {
                                 </div>
                               ))}
                             </div>
+                            {(order.subtotalCents != null || order.shippingFeeCents != null || order.taxAmountCents != null) && (
+                              <div className="mt-3 space-y-1 border-t border-white/10 pt-3">
+                                {order.subtotalCents != null && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-white/50">Subtotal</span>
+                                    <span className="text-white/70">{formatCurrency(order.subtotalCents)}</span>
+                                  </div>
+                                )}
+                                {order.promoCode && order.discountAmountCents ? (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-emerald-400">Promo {order.promoCode}</span>
+                                    <span className="text-emerald-400">-{formatCurrency(order.discountAmountCents)}</span>
+                                  </div>
+                                ) : null}
+                                {order.shippingFeeCents != null && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-white/50">Shipping</span>
+                                    <span className="text-white/70">{formatCurrency(order.shippingFeeCents)}</span>
+                                  </div>
+                                )}
+                                {order.taxAmountCents != null && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-white/50">Sales Tax (7%)</span>
+                                    <span className="text-white/70">{formatCurrency(order.taxAmountCents)}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between border-t border-white/10 pt-2 text-sm">
+                                  <span className="font-semibold text-white">Total</span>
+                                  <span className="font-semibold text-white">{formatCurrency(order.amountTotalCents)}</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -181,6 +213,15 @@ export default async function OrdersPage() {
                             </div>
                           )}
                         </div>
+
+                        {order.orderNotes && (
+                          <div className="mt-4">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
+                              Order Notes
+                            </p>
+                            <p className="mt-1 text-sm text-white/70">{order.orderNotes}</p>
+                          </div>
+                        )}
                       </div>
                     </details>
                   );

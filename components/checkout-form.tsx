@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getCartItemTotal } from "@/lib/cart-types";
 import type { CartItem } from "@/lib/cart-types";
+import { SHIPPING_FEE_CENTS, TAX_RATE } from "@/lib/checkout-constants";
 import { formatCurrency } from "@/lib/format";
 
 const US_STATES = [
@@ -38,6 +39,12 @@ type FormFields = {
   city: string;
   state: string;
   zip: string;
+  shipStreet: string;
+  shipApt: string;
+  shipCity: string;
+  shipState: string;
+  shipZip: string;
+  orderNotes: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,17 +65,21 @@ function validateField(field: keyof FormFields, value: string): string {
       if (value.trim() && !PHONE_RE.test(value)) return "Please enter a valid phone number";
       return "";
     case "street":
+    case "shipStreet":
       if (!value.trim()) return "Street address is required";
       if (value.length > 200) return "Street must be under 200 characters";
       return "";
     case "city":
+    case "shipCity":
       if (!value.trim()) return "City is required";
       if (value.length > 100) return "City must be under 100 characters";
       return "";
     case "state":
+    case "shipState":
       if (!value) return "Please select a state";
       return "";
     case "zip":
+    case "shipZip":
       if (!value.trim()) return "ZIP code is required";
       if (!ZIP_RE.test(value)) return "Enter a valid ZIP code (e.g. 12345)";
       return "";
@@ -77,10 +88,14 @@ function validateField(field: keyof FormFields, value: string): string {
   }
 }
 
-function validateAll(fields: FormFields): Record<string, string> {
+const OPTIONAL_FIELDS = new Set<string>(["apt", "shipApt", "orderNotes", "phone"]);
+const SHIP_FIELDS = new Set<string>(["shipStreet", "shipApt", "shipCity", "shipState", "shipZip"]);
+
+function validateAll(fields: FormFields, shipToDifferent: boolean): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const key of Object.keys(fields) as (keyof FormFields)[]) {
-    if (key === "apt") continue; // optional
+    if (OPTIONAL_FIELDS.has(key)) continue;
+    if (SHIP_FIELDS.has(key) && !shipToDifferent) continue;
     const err = validateField(key, fields[key]);
     if (err) errors[key] = err;
   }
@@ -148,10 +163,17 @@ export function CheckoutForm() {
     city: "",
     state: "",
     zip: "",
+    shipStreet: "",
+    shipApt: "",
+    shipCity: "",
+    shipState: "",
+    shipZip: "",
+    orderNotes: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [shipToDifferent, setShipToDifferent] = useState(false);
 
   // Promo code state
   const [promoInput, setPromoInput] = useState("");
@@ -185,14 +207,15 @@ export function CheckoutForm() {
       .then((info) => {
         if (!info) return;
         // eslint-disable-next-line react-hooks/set-state-in-effect -- pre-filling form fields from async API data
+        const addr = info.billingAddress ?? info.shippingAddress;
         setFields((prev) => ({
           ...prev,
           phone: prev.phone || info.customerPhone || "",
-          street: prev.street || info.shippingAddress?.street || "",
-          apt: prev.apt || info.shippingAddress?.apt || "",
-          city: prev.city || info.shippingAddress?.city || "",
-          state: prev.state || info.shippingAddress?.state || "",
-          zip: prev.zip || info.shippingAddress?.zip || "",
+          street: prev.street || addr?.street || "",
+          apt: prev.apt || addr?.apt || "",
+          city: prev.city || addr?.city || "",
+          state: prev.state || addr?.state || "",
+          zip: prev.zip || addr?.zip || "",
         }));
       })
       .catch(() => {});
@@ -221,7 +244,7 @@ export function CheckoutForm() {
 
   const handleBlur = useCallback(
     (field: keyof FormFields) => {
-      if (field === "apt") return;
+      if (OPTIONAL_FIELDS.has(field)) return;
       const err = validateField(field, fields[field]);
       setErrors((prev) => {
         if (!err) {
@@ -274,13 +297,17 @@ export function CheckoutForm() {
   }
 
   const discountCents = appliedPromo?.discountAmountCents ?? 0;
-  const adjustedTotal = Math.max(0, totalCents - discountCents);
+  const subtotalAfterDiscount = Math.max(0, totalCents - discountCents);
+  const shippingFeeCents = SHIPPING_FEE_CENTS;
+  const taxableAmount = subtotalAfterDiscount + shippingFeeCents;
+  const taxAmountCents = Math.round(taxableAmount * TAX_RATE);
+  const grandTotal = subtotalAfterDiscount + shippingFeeCents + taxAmountCents;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setCheckoutError("");
 
-    const fieldErrors = validateAll(fields);
+    const fieldErrors = validateAll(fields, shipToDifferent);
     if (Object.keys(fieldErrors).length > 0) {
       setErrors(fieldErrors);
       // Focus first invalid field
@@ -293,7 +320,7 @@ export function CheckoutForm() {
     setIsSubmitting(true);
 
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         items: items.map((item) => {
           if (item.kind === "configured") {
             return {
@@ -312,7 +339,7 @@ export function CheckoutForm() {
         customerName: fields.name,
         customerPhone: fields.phone || undefined,
         promoCode: appliedPromo?.code || undefined,
-        shippingAddress: {
+        billingAddress: {
           street: fields.street,
           apt: fields.apt || undefined,
           city: fields.city,
@@ -320,7 +347,19 @@ export function CheckoutForm() {
           zip: fields.zip,
           country: "US",
         },
+        orderNotes: fields.orderNotes || undefined,
       };
+
+      if (shipToDifferent) {
+        payload.shippingAddress = {
+          street: fields.shipStreet,
+          apt: fields.shipApt || undefined,
+          city: fields.shipCity,
+          state: fields.shipState,
+          zip: fields.shipZip,
+          country: "US",
+        };
+      }
 
       const res = await fetch("/api/cart-checkout", {
         method: "POST",
@@ -432,13 +471,13 @@ export function CheckoutForm() {
             </div>
           </div>
 
-          {/* Shipping Address */}
+          {/* Billing Address */}
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
-              Shipping
+              Billing
             </p>
             <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.04em] text-white">
-              Shipping address
+              Billing address
             </h2>
             <div className="mt-4 space-y-3">
               <div>
@@ -539,6 +578,160 @@ export function CheckoutForm() {
             </div>
           </div>
 
+          {/* Ship to different address */}
+          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
+            <label className="flex cursor-pointer items-center gap-3">
+              <span
+                className={`flex size-5 shrink-0 items-center justify-center rounded-[6px] border transition ${
+                  shipToDifferent
+                    ? "border-[#ff5a1f] bg-[#ff5a1f]"
+                    : "border-white/20 bg-white/[0.04]"
+                }`}
+              >
+                {shipToDifferent && (
+                  <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                )}
+              </span>
+              <span className="text-sm font-medium text-white">
+                Ship to a different address?
+              </span>
+            </label>
+            <input
+              type="checkbox"
+              checked={shipToDifferent}
+              onChange={(e) => setShipToDifferent(e.target.checked)}
+              className="sr-only"
+              aria-label="Ship to a different address"
+            />
+
+            {shipToDifferent && (
+              <div className="mt-6 space-y-3">
+                <div>
+                  <label htmlFor="checkout-shipStreet" className="mb-1.5 block text-sm font-medium text-white/70">
+                    Street address <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="checkout-shipStreet"
+                    name="shipStreet"
+                    type="text"
+                    autoComplete="shipping address-line1"
+                    value={fields.shipStreet}
+                    onChange={(e) => setField("shipStreet", e.target.value)}
+                    onBlur={() => handleBlur("shipStreet")}
+                    aria-invalid={!!errors.shipStreet}
+                    aria-describedby={errors.shipStreet ? "err-shipStreet" : undefined}
+                    className={inputClassName("shipStreet")}
+                  />
+                  <FieldError id="err-shipStreet" message={errors.shipStreet} />
+                </div>
+                <div>
+                  <label htmlFor="checkout-shipApt" className="mb-1.5 block text-sm font-medium text-white/70">
+                    Apt / Suite <span className="text-white/30">(optional)</span>
+                  </label>
+                  <input
+                    id="checkout-shipApt"
+                    name="shipApt"
+                    type="text"
+                    autoComplete="shipping address-line2"
+                    value={fields.shipApt}
+                    onChange={(e) => setField("shipApt", e.target.value)}
+                    className={inputNormal}
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <label htmlFor="checkout-shipCity" className="mb-1.5 block text-sm font-medium text-white/70">
+                      City <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      id="checkout-shipCity"
+                      name="shipCity"
+                      type="text"
+                      autoComplete="shipping address-level2"
+                      value={fields.shipCity}
+                      onChange={(e) => setField("shipCity", e.target.value)}
+                      onBlur={() => handleBlur("shipCity")}
+                      aria-invalid={!!errors.shipCity}
+                      aria-describedby={errors.shipCity ? "err-shipCity" : undefined}
+                      className={inputClassName("shipCity")}
+                    />
+                    <FieldError id="err-shipCity" message={errors.shipCity} />
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-shipState" className="mb-1.5 block text-sm font-medium text-white/70">
+                      State <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      id="checkout-shipState"
+                      name="shipState"
+                      autoComplete="shipping address-level1"
+                      value={fields.shipState}
+                      onChange={(e) => setField("shipState", e.target.value)}
+                      onBlur={() => handleBlur("shipState")}
+                      aria-invalid={!!errors.shipState}
+                      aria-describedby={errors.shipState ? "err-shipState" : undefined}
+                      className={inputClassName("shipState")}
+                    >
+                      <option value="">State</option>
+                      {US_STATES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                    <FieldError id="err-shipState" message={errors.shipState} />
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-shipZip" className="mb-1.5 block text-sm font-medium text-white/70">
+                      ZIP code <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      id="checkout-shipZip"
+                      name="shipZip"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="shipping postal-code"
+                      value={fields.shipZip}
+                      onChange={(e) => setField("shipZip", e.target.value)}
+                      onBlur={() => handleBlur("shipZip")}
+                      aria-invalid={!!errors.shipZip}
+                      aria-describedby={errors.shipZip ? "err-shipZip" : undefined}
+                      className={inputClassName("shipZip")}
+                    />
+                    <FieldError id="err-shipZip" message={errors.shipZip} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Order Notes */}
+          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
+              Notes
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.04em] text-white">
+              Order notes
+            </h2>
+            <p className="mt-1 text-xs text-white/40">
+              Special delivery instructions or requests (optional)
+            </p>
+            <textarea
+              name="orderNotes"
+              value={fields.orderNotes}
+              onChange={(e) => setField("orderNotes", e.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="e.g. Leave at front door, gift wrapping requests..."
+              className={`${inputNormal} mt-3 resize-none`}
+            />
+            <p className="mt-1 text-right text-xs text-white/30">
+              {fields.orderNotes.length}/500
+            </p>
+          </div>
+
           {/* Mobile-only order summary */}
           <div className="lg:hidden">
             <OrderSummaryCard
@@ -554,7 +747,9 @@ export function CheckoutForm() {
               promoLoading={promoLoading}
               promoError={promoError}
               discountCents={discountCents}
-              adjustedTotal={adjustedTotal}
+              shippingFeeCents={shippingFeeCents}
+              taxAmountCents={taxAmountCents}
+              grandTotal={grandTotal}
             />
           </div>
         </div>
@@ -575,7 +770,9 @@ export function CheckoutForm() {
               promoLoading={promoLoading}
               promoError={promoError}
               discountCents={discountCents}
-              adjustedTotal={adjustedTotal}
+              shippingFeeCents={shippingFeeCents}
+              taxAmountCents={taxAmountCents}
+              grandTotal={grandTotal}
             />
           </div>
         </div>
@@ -604,7 +801,9 @@ function OrderSummaryCard({
   promoLoading,
   promoError,
   discountCents,
-  adjustedTotal,
+  shippingFeeCents,
+  taxAmountCents,
+  grandTotal,
 }: {
   items: CartItem[];
   totalCents: number;
@@ -618,7 +817,9 @@ function OrderSummaryCard({
   promoLoading: boolean;
   promoError: string;
   discountCents: number;
-  adjustedTotal: number;
+  shippingFeeCents: number;
+  taxAmountCents: number;
+  grandTotal: number;
 }) {
   return (
     <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
@@ -709,11 +910,15 @@ function OrderSummaryCard({
         )}
         <div className="flex items-center justify-between text-sm">
           <span className="text-white/55">Shipping</span>
-          <span className="text-white/55">Calculated at payment</span>
+          <span className="text-white">Flat rate: {formatCurrency(shippingFeeCents)}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-white/55">Sales Tax — 7%</span>
+          <span className="text-white">{formatCurrency(taxAmountCents)}</span>
         </div>
         <div className="flex items-center justify-between border-t border-white/10 pt-3">
           <span className="text-sm font-semibold text-white">Total</span>
-          <span className="text-xl font-semibold text-white">{formatCurrency(adjustedTotal)}</span>
+          <span className="text-xl font-semibold text-white">{formatCurrency(grandTotal)}</span>
         </div>
       </div>
 

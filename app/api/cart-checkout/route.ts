@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 export const dynamic = "force-dynamic";
 import { getAccessoryBySlug } from "@/lib/accessories";
 import { getCatalogProductBySlug } from "@/lib/catalog";
+import { SHIPPING_FEE_CENTS, TAX_RATE } from "@/lib/checkout-constants";
 import { getDb } from "@/lib/db";
 import { sendOrderEmail, sendCustomerConfirmationEmail } from "@/lib/email";
 import { recordOrderEvent } from "@/lib/orders";
@@ -27,7 +28,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
   }
 
-  const { customerEmail, customerName, customerPhone, shippingAddress, promoCode: promoCodeInput } = parsed.data;
+  const {
+    customerEmail,
+    customerName,
+    customerPhone,
+    billingAddress,
+    shippingAddress: shippingAddressInput,
+    orderNotes,
+    promoCode: promoCodeInput,
+  } = parsed.data;
+  const effectiveShippingAddress = shippingAddressInput ?? billingAddress;
 
   const db = getDb();
   const stripe = getStripe();
@@ -172,7 +182,6 @@ export async function POST(request: Request) {
   // Validate & apply promo code if provided
   let validatedPromo: PromoCodeRecord | null = null;
   let discountAmountCents = 0;
-  let finalTotalCents = cartTotalCents;
 
   if (promoCodeInput) {
     const promoResult = await validatePromoCode(promoCodeInput);
@@ -181,8 +190,14 @@ export async function POST(request: Request) {
     }
     validatedPromo = promoResult.promoCode;
     discountAmountCents = calculateDiscount(validatedPromo, cartTotalCents);
-    finalTotalCents = Math.max(0, cartTotalCents - discountAmountCents);
   }
+
+  // Calculate shipping, tax, and final total
+  const subtotalAfterDiscount = Math.max(0, cartTotalCents - discountAmountCents);
+  const shippingFeeCents = SHIPPING_FEE_CENTS;
+  const taxableAmount = subtotalAfterDiscount + shippingFeeCents;
+  const taxAmountCents = Math.round(taxableAmount * TAX_RATE);
+  const finalTotalCents = subtotalAfterDiscount + shippingFeeCents + taxAmountCents;
 
   // Create a Stripe Customer for order history / Customer Portal support
   let stripeCustomerId: string | null = null;
@@ -193,22 +208,22 @@ export async function POST(request: Request) {
         name: customerName,
         phone: customerPhone ?? undefined,
         address: {
-          line1: shippingAddress.street,
-          line2: shippingAddress.apt ?? undefined,
-          city: shippingAddress.city,
-          state: shippingAddress.state,
-          postal_code: shippingAddress.zip,
-          country: shippingAddress.country,
+          line1: billingAddress.street,
+          line2: billingAddress.apt ?? undefined,
+          city: billingAddress.city,
+          state: billingAddress.state,
+          postal_code: billingAddress.zip,
+          country: billingAddress.country,
         },
         shipping: {
           name: customerName,
           address: {
-            line1: shippingAddress.street,
-            line2: shippingAddress.apt ?? undefined,
-            city: shippingAddress.city,
-            state: shippingAddress.state,
-            postal_code: shippingAddress.zip,
-            country: shippingAddress.country,
+            line1: effectiveShippingAddress.street,
+            line2: effectiveShippingAddress.apt ?? undefined,
+            city: effectiveShippingAddress.city,
+            state: effectiveShippingAddress.state,
+            postal_code: effectiveShippingAddress.zip,
+            country: effectiveShippingAddress.country,
           },
         },
         metadata: { source: "festivemotion-checkout" },
@@ -229,11 +244,16 @@ export async function POST(request: Request) {
       configurationId: null,
       userId,
       status: "pending",
+      subtotalCents: cartTotalCents,
+      shippingFeeCents,
+      taxAmountCents,
       amountTotalCents: finalTotalCents,
       customerEmail,
       customerName,
       customerPhone: customerPhone ?? null,
-      shippingAddress,
+      billingAddress,
+      shippingAddress: effectiveShippingAddress,
+      orderNotes: orderNotes ?? null,
       stripeCustomerId,
       promoCodeId: validatedPromo?.id ?? null,
       promoCode: validatedPromo?.code ?? null,
@@ -289,9 +309,14 @@ export async function POST(request: Request) {
         orderId: order.id,
         productName: orderItemValues[0]?.label ?? "Order",
         items: emailItems,
-        shippingAddress,
+        shippingAddress: effectiveShippingAddress,
+        billingAddress,
+        orderNotes: orderNotes ?? null,
         promoCode: validatedPromo?.code ?? null,
         discountAmountCents,
+        subtotalCents: cartTotalCents,
+        shippingFeeCents,
+        taxAmountCents,
       });
     } catch (err) {
       console.error("Failed to send admin email for free order:", err);
@@ -303,8 +328,15 @@ export async function POST(request: Request) {
         amountTotalCents: finalTotalCents,
         customerEmail,
         customerName,
-        shippingAddress,
+        shippingAddress: effectiveShippingAddress,
+        billingAddress,
+        orderNotes: orderNotes ?? null,
         items: emailItems,
+        promoCode: validatedPromo?.code ?? null,
+        discountAmountCents,
+        subtotalCents: cartTotalCents,
+        shippingFeeCents,
+        taxAmountCents,
       });
     } catch (err) {
       console.error("Failed to send customer email for free order:", err);
@@ -312,6 +344,30 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: `${getSiteUrl()}/success?session_id=${freeSessionId}` });
   }
+
+  // Add shipping and tax as Stripe line items
+  stripeLineItems.push({
+    quantity: 1,
+    price_data: {
+      currency: "usd",
+      unit_amount: shippingFeeCents,
+      product_data: {
+        name: "Shipping",
+        description: "Flat-rate shipping",
+      },
+    },
+  });
+
+  stripeLineItems.push({
+    quantity: 1,
+    price_data: {
+      currency: "usd",
+      unit_amount: taxAmountCents,
+      product_data: {
+        name: "Sales Tax (7%)",
+      },
+    },
+  });
 
   if (stripe) {
     // Create Stripe coupon for discount if applicable
@@ -349,12 +405,17 @@ export async function POST(request: Request) {
           orderId: order.id,
           customerName: customerName ?? "",
           customerPhone: customerPhone ?? "",
-          shippingAddress: shippingAddress ? JSON.stringify(shippingAddress) : "",
+          shippingAddress: JSON.stringify(effectiveShippingAddress),
+          billingAddress: JSON.stringify(billingAddress),
+          orderNotes: orderNotes ? orderNotes.slice(0, 490) : "",
           itemCount: String(orderItemValues.length),
           itemSummary: orderItemValues
             .map((oi) => `${oi.quantity}x ${oi.label}`)
             .join(", ")
             .slice(0, 500),
+          subtotalCents: String(cartTotalCents),
+          shippingFeeCents: String(shippingFeeCents),
+          taxAmountCents: String(taxAmountCents),
           ...(validatedPromo ? { promoCode: validatedPromo.code } : {}),
         },
         },

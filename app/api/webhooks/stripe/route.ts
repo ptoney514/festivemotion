@@ -69,11 +69,17 @@ export async function POST(request: Request) {
       });
     }
 
-    // Parse shipping address from Stripe metadata (backfill safety net)
+    // Parse addresses from Stripe metadata (backfill safety net)
     let shippingAddress = null;
     try {
       const raw = session.metadata?.shippingAddress;
       if (raw) shippingAddress = JSON.parse(raw);
+    } catch { /* ignore malformed JSON */ }
+
+    let billingAddress = null;
+    try {
+      const raw = session.metadata?.billingAddress;
+      if (raw) billingAddress = JSON.parse(raw);
     } catch { /* ignore malformed JSON */ }
 
     await db
@@ -87,6 +93,8 @@ export async function POST(request: Request) {
         customerName: session.metadata?.customerName || null,
         customerPhone: session.metadata?.customerPhone || null,
         shippingAddress,
+        billingAddress,
+        orderNotes: session.metadata?.orderNotes || null,
       })
       .where(eq(orders.id, orderRecord.order.id));
 
@@ -121,8 +129,13 @@ export async function POST(request: Request) {
             totalCents: i.totalCents,
           })),
           shippingAddress,
+          billingAddress,
+          orderNotes: orderRecord.order.orderNotes ?? null,
           promoCode: orderRecord.order.promoCode ?? null,
           discountAmountCents: orderRecord.order.discountAmountCents ?? null,
+          subtotalCents: orderRecord.order.subtotalCents ?? null,
+          shippingFeeCents: orderRecord.order.shippingFeeCents ?? null,
+          taxAmountCents: orderRecord.order.taxAmountCents ?? null,
           stripePaymentIntentId:
             typeof session.payment_intent === "string" ? session.payment_intent : null,
         });
@@ -140,11 +153,18 @@ export async function POST(request: Request) {
             customerEmail,
             customerName: session.metadata?.customerName || null,
             shippingAddress,
+            billingAddress,
+            orderNotes: orderRecord.order.orderNotes ?? null,
             items: items.map((i) => ({
               label: i.label,
               quantity: i.quantity,
               totalCents: i.totalCents,
             })),
+            promoCode: orderRecord.order.promoCode ?? null,
+            discountAmountCents: orderRecord.order.discountAmountCents ?? null,
+            subtotalCents: orderRecord.order.subtotalCents ?? null,
+            shippingFeeCents: orderRecord.order.shippingFeeCents ?? null,
+            taxAmountCents: orderRecord.order.taxAmountCents ?? null,
           });
         } catch (err) {
           Sentry.captureException(err);

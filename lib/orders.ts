@@ -201,8 +201,13 @@ export async function getSuccessSummary(sessionId: string) {
                     totalCents: i.totalCents,
                   })),
                   shippingAddress: fromDatabase.order.shippingAddress as { street: string; apt?: string; city: string; state: string; zip: string; country: string } | null,
+                  billingAddress: fromDatabase.order.billingAddress as { street: string; apt?: string; city: string; state: string; zip: string; country: string } | null,
+                  orderNotes: fromDatabase.order.orderNotes ?? null,
                   promoCode: fromDatabase.order.promoCode ?? null,
                   discountAmountCents: fromDatabase.order.discountAmountCents ?? null,
+                  subtotalCents: fromDatabase.order.subtotalCents ?? null,
+                  shippingFeeCents: fromDatabase.order.shippingFeeCents ?? null,
+                  taxAmountCents: fromDatabase.order.taxAmountCents ?? null,
                   stripePaymentIntentId:
                     typeof session.payment_intent === "string" ? session.payment_intent : null,
                 });
@@ -218,11 +223,18 @@ export async function getSuccessSummary(sessionId: string) {
                     customerEmail,
                     customerName: fromDatabase.order.customerName ?? null,
                     shippingAddress: fromDatabase.order.shippingAddress as { street: string; apt?: string; city: string; state: string; zip: string; country: string } | null,
+                    billingAddress: fromDatabase.order.billingAddress as { street: string; apt?: string; city: string; state: string; zip: string; country: string } | null,
+                    orderNotes: fromDatabase.order.orderNotes ?? null,
                     items: items.map((i) => ({
                       label: i.label,
                       quantity: i.quantity,
                       totalCents: i.totalCents,
                     })),
+                    promoCode: fromDatabase.order.promoCode ?? null,
+                    discountAmountCents: fromDatabase.order.discountAmountCents ?? null,
+                    subtotalCents: fromDatabase.order.subtotalCents ?? null,
+                    shippingFeeCents: fromDatabase.order.shippingFeeCents ?? null,
+                    taxAmountCents: fromDatabase.order.taxAmountCents ?? null,
                   });
                 } catch (err) {
                   console.error("Customer confirmation email failed:", err);
@@ -245,7 +257,12 @@ export async function getSuccessSummary(sessionId: string) {
       email: fromDatabase.order.customerEmail,
       customerName: fromDatabase.order.customerName ?? null,
       shippingAddress: fromDatabase.order.shippingAddress ?? null,
+      billingAddress: fromDatabase.order.billingAddress ?? null,
+      orderNotes: fromDatabase.order.orderNotes ?? null,
       amountTotalCents: fromDatabase.order.amountTotalCents,
+      subtotalCents: fromDatabase.order.subtotalCents ?? null,
+      shippingFeeCents: fromDatabase.order.shippingFeeCents ?? null,
+      taxAmountCents: fromDatabase.order.taxAmountCents ?? null,
       promoCode: fromDatabase.order.promoCode ?? null,
       discountAmountCents: fromDatabase.order.discountAmountCents ?? null,
       productName: fromDatabase.product?.name ?? "FestiveMotion order",
@@ -335,6 +352,7 @@ export async function getLastOrderInfo(userId: string) {
       customerName: orders.customerName,
       customerPhone: orders.customerPhone,
       shippingAddress: orders.shippingAddress,
+      billingAddress: orders.billingAddress,
     })
     .from(orders)
     .where(eq(orders.userId, userId))
