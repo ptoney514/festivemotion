@@ -46,6 +46,7 @@ export const cartCheckoutRequestSchema = z.object({
   billingAddress: addressSchema,
   shippingAddress: addressSchema.optional(),
   orderNotes: z.string().max(500).optional(),
+  fulfillmentMethod: z.enum(["shipping", "pickup"]),
 });
 
 export type CartCheckoutRequest = z.infer<typeof cartCheckoutRequestSchema>;

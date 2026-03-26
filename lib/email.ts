@@ -32,6 +32,7 @@ type SendOrderEmailArgs = {
   shippingFeeCents?: number | null;
   taxAmountCents?: number | null;
   stripePaymentIntentId?: string | null;
+  fulfillmentMethod?: "shipping" | "pickup";
 };
 
 function formatDollars(cents: number) {
@@ -78,7 +79,9 @@ function buildAdminPlainText(args: SendOrderEmailArgs): string {
     if (args.promoCode && args.discountAmountCents) {
       lines.push(`Promo: ${args.promoCode} — -${formatDollars(args.discountAmountCents)}`);
     }
-    if (args.shippingFeeCents != null) {
+    if (args.fulfillmentMethod === "pickup") {
+      lines.push(`Fulfillment: In-Store Pickup (Free)`);
+    } else if (args.shippingFeeCents != null) {
       lines.push(`Shipping: ${formatDollars(args.shippingFeeCents)}`);
     }
     if (args.taxAmountCents != null) {
@@ -99,7 +102,9 @@ function buildAdminPlainText(args: SendOrderEmailArgs): string {
     lines.push(`  ${a.country}`);
   }
 
-  if (args.shippingAddress) {
+  if (args.fulfillmentMethod === "pickup") {
+    lines.push(``, `Fulfillment: In-Store / Event Pickup`);
+  } else if (args.shippingAddress) {
     const a = args.shippingAddress;
     lines.push(``, `Shipping:`);
     lines.push(`  ${a.street}`);
@@ -192,7 +197,13 @@ function buildAdminHtml(args: SendOrderEmailArgs): string {
         </tr>`;
   }
 
-  if (args.shippingFeeCents != null) {
+  if (args.fulfillmentMethod === "pickup") {
+    pricingRows += `
+        <tr>
+          <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">In-Store Pickup</td>
+          <td style="padding:4px 0 0;color:#4ade80;font-size:14px;text-align:right">Free</td>
+        </tr>`;
+  } else if (args.shippingFeeCents != null) {
     pricingRows += `
         <tr>
           <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Shipping</td>
@@ -245,16 +256,21 @@ function buildAdminHtml(args: SendOrderEmailArgs): string {
       </div>`
     : "";
 
-  const shippingBlock = args.shippingAddress
+  const shippingBlock = args.fulfillmentMethod === "pickup"
     ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
-        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Shipping Address</p>
-        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">
-          ${escapeHtml(args.shippingAddress.street)}${args.shippingAddress.apt ? `<br>${escapeHtml(args.shippingAddress.apt)}` : ""}<br>
-          ${escapeHtml(args.shippingAddress.city)}, ${escapeHtml(args.shippingAddress.state)} ${escapeHtml(args.shippingAddress.zip)}<br>
-          ${escapeHtml(args.shippingAddress.country)}
-        </p>
+        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Fulfillment</p>
+        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">In-Store / Event Pickup</p>
       </div>`
-    : "";
+    : args.shippingAddress
+      ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
+          <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Shipping Address</p>
+          <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">
+            ${escapeHtml(args.shippingAddress.street)}${args.shippingAddress.apt ? `<br>${escapeHtml(args.shippingAddress.apt)}` : ""}<br>
+            ${escapeHtml(args.shippingAddress.city)}, ${escapeHtml(args.shippingAddress.state)} ${escapeHtml(args.shippingAddress.zip)}<br>
+            ${escapeHtml(args.shippingAddress.country)}
+          </p>
+        </div>`
+      : "";
 
   const notesBlock = args.orderNotes
     ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
@@ -376,6 +392,7 @@ type SendCustomerConfirmationEmailArgs = {
   subtotalCents?: number | null;
   shippingFeeCents?: number | null;
   taxAmountCents?: number | null;
+  fulfillmentMethod?: "shipping" | "pickup";
 };
 
 function buildCustomerPlainText(args: SendCustomerConfirmationEmailArgs): string {
@@ -405,7 +422,9 @@ function buildCustomerPlainText(args: SendCustomerConfirmationEmailArgs): string
   if (args.promoCode && args.discountAmountCents) {
     lines.push(`Promo: ${args.promoCode} — -${formatDollars(args.discountAmountCents)}`);
   }
-  if (args.shippingFeeCents != null) {
+  if (args.fulfillmentMethod === "pickup") {
+    lines.push(`Fulfillment: In-Store Pickup (Free)`);
+  } else if (args.shippingFeeCents != null) {
     lines.push(`Shipping: ${formatDollars(args.shippingFeeCents)}`);
   }
   if (args.taxAmountCents != null) {
@@ -422,7 +441,9 @@ function buildCustomerPlainText(args: SendCustomerConfirmationEmailArgs): string
     lines.push(`  ${a.country}`);
   }
 
-  if (args.shippingAddress) {
+  if (args.fulfillmentMethod === "pickup") {
+    lines.push(``, `Fulfillment: In-Store / Event Pickup`);
+  } else if (args.shippingAddress) {
     const a = args.shippingAddress;
     lines.push(``, `Shipping to:`);
     lines.push(`  ${a.street}`);
@@ -466,16 +487,21 @@ function buildCustomerHtml(args: SendCustomerConfirmationEmailArgs): string {
     )
     .join("");
 
-  const shippingBlock = args.shippingAddress
+  const shippingBlock = args.fulfillmentMethod === "pickup"
     ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
-        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Shipping Address</p>
-        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">
-          ${escapeHtml(args.shippingAddress.street)}${args.shippingAddress.apt ? `<br>${escapeHtml(args.shippingAddress.apt)}` : ""}<br>
-          ${escapeHtml(args.shippingAddress.city)}, ${escapeHtml(args.shippingAddress.state)} ${escapeHtml(args.shippingAddress.zip)}<br>
-          ${escapeHtml(args.shippingAddress.country)}
-        </p>
+        <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Fulfillment</p>
+        <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">In-Store / Event Pickup</p>
       </div>`
-    : "";
+    : args.shippingAddress
+      ? `<div style="margin-top:24px;padding:16px;background:#111;border-radius:8px">
+          <p style="margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:#888">Shipping Address</p>
+          <p style="margin:0;color:#ccc;font-size:14px;line-height:1.6">
+            ${escapeHtml(args.shippingAddress.street)}${args.shippingAddress.apt ? `<br>${escapeHtml(args.shippingAddress.apt)}` : ""}<br>
+            ${escapeHtml(args.shippingAddress.city)}, ${escapeHtml(args.shippingAddress.state)} ${escapeHtml(args.shippingAddress.zip)}<br>
+            ${escapeHtml(args.shippingAddress.country)}
+          </p>
+        </div>`
+      : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -527,7 +553,10 @@ function buildCustomerHtml(args: SendCustomerConfirmationEmailArgs): string {
           <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Promo: <span style="color:#ff5a1f">${escapeHtml(args.promoCode)}</span></td>
           <td style="padding:4px 0 0;color:#4ade80;font-size:14px;text-align:right">-${formatDollars(args.discountAmountCents)}</td>
         </tr>` : ""}
-        ${args.shippingFeeCents != null ? `<tr>
+        ${args.fulfillmentMethod === "pickup" ? `<tr>
+          <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">In-Store Pickup</td>
+          <td style="padding:4px 0 0;color:#4ade80;font-size:14px;text-align:right">Free</td>
+        </tr>` : args.shippingFeeCents != null ? `<tr>
           <td colspan="2" style="padding:4px 0 0;color:#aaa;font-size:14px">Shipping</td>
           <td style="padding:4px 0 0;color:#ccc;font-size:14px;text-align:right">${formatDollars(args.shippingFeeCents)}</td>
         </tr>` : ""}

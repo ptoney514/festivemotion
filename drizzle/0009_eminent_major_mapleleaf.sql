@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "fulfillment_method" text DEFAULT 'shipping' NOT NULL;

@@ -79,10 +79,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                         <span className="text-emerald-400">-{formatCurrency(summary.discountAmountCents)}</span>
                       </div>
                     ) : null}
-                    {summary.shippingFeeCents != null ? (
+                    {summary.shippingFeeCents != null || summary.fulfillmentMethod === "pickup" ? (
                       <div className="flex justify-between text-sm">
-                        <span className="text-white/50">Shipping</span>
-                        <span className="text-white">{formatCurrency(summary.shippingFeeCents)}</span>
+                        <span className="text-white/50">
+                          {summary.fulfillmentMethod === "pickup" ? "Pickup" : "Shipping"}
+                        </span>
+                        <span className="text-white">
+                          {summary.fulfillmentMethod === "pickup" ? "Free" : formatCurrency(summary.shippingFeeCents!)}
+                        </span>
                       </div>
                     ) : null}
                     {summary.taxAmountCents != null ? (
@@ -144,7 +148,12 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                       </p>
                     </div>
                   ) : null}
-                  {summary.shippingAddress ? (
+                  {summary.fulfillmentMethod === "pickup" ? (
+                    <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                      <p className="text-xs uppercase tracking-[0.16em] text-white/45">Fulfillment</p>
+                      <p className="mt-2 text-sm text-white">In-Store / Event Pickup</p>
+                    </div>
+                  ) : summary.shippingAddress ? (
                     <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
                       <p className="text-xs uppercase tracking-[0.16em] text-white/45">Ships to</p>
                       <p className="mt-2 text-sm leading-6 text-white">

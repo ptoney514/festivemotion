@@ -166,10 +166,14 @@ export default async function OrdersPage() {
                                     <span className="text-emerald-400">-{formatCurrency(order.discountAmountCents)}</span>
                                   </div>
                                 ) : null}
-                                {order.shippingFeeCents != null && (
+                                {(order.shippingFeeCents != null || order.fulfillmentMethod === "pickup") && (
                                   <div className="flex justify-between text-sm">
-                                    <span className="text-white/50">Shipping</span>
-                                    <span className="text-white/70">{formatCurrency(order.shippingFeeCents)}</span>
+                                    <span className="text-white/50">
+                                      {order.fulfillmentMethod === "pickup" ? "Pickup" : "Shipping"}
+                                    </span>
+                                    <span className="text-white/70">
+                                      {order.fulfillmentMethod === "pickup" ? "Free" : formatCurrency(order.shippingFeeCents!)}
+                                    </span>
                                   </div>
                                 )}
                                 {order.taxAmountCents != null && (
@@ -198,7 +202,16 @@ export default async function OrdersPage() {
                               </p>
                             </div>
                           )}
-                          {shipping?.street && (
+                          {order.fulfillmentMethod === "pickup" ? (
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
+                                Fulfillment
+                              </p>
+                              <p className="mt-1 text-sm text-white/70">
+                                In-Store / Event Pickup
+                              </p>
+                            </div>
+                          ) : shipping?.street ? (
                             <div>
                               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ffb089]">
                                 Ships To
@@ -211,7 +224,7 @@ export default async function OrdersPage() {
                                 {shipping.city}, {shipping.state} {shipping.zip}
                               </p>
                             </div>
-                          )}
+                          ) : null}
                         </div>
 
                         {order.orderNotes && (

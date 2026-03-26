@@ -36,8 +36,11 @@ export async function POST(request: Request) {
     shippingAddress: shippingAddressInput,
     orderNotes,
     promoCode: promoCodeInput,
+    fulfillmentMethod,
   } = parsed.data;
-  const effectiveShippingAddress = shippingAddressInput ?? billingAddress;
+  const effectiveShippingAddress = fulfillmentMethod === "pickup"
+    ? null
+    : (shippingAddressInput ?? billingAddress);
 
   const db = getDb();
   const stripe = getStripe();
@@ -194,7 +197,7 @@ export async function POST(request: Request) {
 
   // Calculate shipping, tax, and final total
   const subtotalAfterDiscount = Math.max(0, cartTotalCents - discountAmountCents);
-  const shippingFeeCents = SHIPPING_FEE_CENTS;
+  const shippingFeeCents = fulfillmentMethod === "pickup" ? 0 : SHIPPING_FEE_CENTS;
   const taxableAmount = subtotalAfterDiscount + shippingFeeCents;
   const taxAmountCents = Math.round(taxableAmount * TAX_RATE);
   const finalTotalCents = subtotalAfterDiscount + shippingFeeCents + taxAmountCents;
@@ -215,17 +218,19 @@ export async function POST(request: Request) {
           postal_code: billingAddress.zip,
           country: billingAddress.country,
         },
-        shipping: {
-          name: customerName,
-          address: {
-            line1: effectiveShippingAddress.street,
-            line2: effectiveShippingAddress.apt ?? undefined,
-            city: effectiveShippingAddress.city,
-            state: effectiveShippingAddress.state,
-            postal_code: effectiveShippingAddress.zip,
-            country: effectiveShippingAddress.country,
+        ...(effectiveShippingAddress ? {
+          shipping: {
+            name: customerName,
+            address: {
+              line1: effectiveShippingAddress.street,
+              line2: effectiveShippingAddress.apt ?? undefined,
+              city: effectiveShippingAddress.city,
+              state: effectiveShippingAddress.state,
+              postal_code: effectiveShippingAddress.zip,
+              country: effectiveShippingAddress.country,
+            },
           },
-        },
+        } : {}),
         metadata: { source: "festivemotion-checkout" },
       });
       stripeCustomerId = customer.id;
@@ -253,6 +258,7 @@ export async function POST(request: Request) {
       customerPhone: customerPhone ?? null,
       billingAddress,
       shippingAddress: effectiveShippingAddress,
+      fulfillmentMethod,
       orderNotes: orderNotes ?? null,
       stripeCustomerId,
       promoCodeId: validatedPromo?.id ?? null,
@@ -317,6 +323,7 @@ export async function POST(request: Request) {
         subtotalCents: cartTotalCents,
         shippingFeeCents,
         taxAmountCents,
+        fulfillmentMethod,
       });
     } catch (err) {
       console.error("Failed to send admin email for free order:", err);
@@ -337,6 +344,7 @@ export async function POST(request: Request) {
         subtotalCents: cartTotalCents,
         shippingFeeCents,
         taxAmountCents,
+        fulfillmentMethod,
       });
     } catch (err) {
       console.error("Failed to send customer email for free order:", err);
@@ -346,17 +354,19 @@ export async function POST(request: Request) {
   }
 
   // Add shipping and tax as Stripe line items
-  stripeLineItems.push({
-    quantity: 1,
-    price_data: {
-      currency: "usd",
-      unit_amount: shippingFeeCents,
-      product_data: {
-        name: "Shipping",
-        description: "Flat-rate shipping",
+  if (shippingFeeCents > 0) {
+    stripeLineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "usd",
+        unit_amount: shippingFeeCents,
+        product_data: {
+          name: "Shipping",
+          description: "Flat-rate shipping",
+        },
       },
-    },
-  });
+    });
+  }
 
   stripeLineItems.push({
     quantity: 1,
@@ -405,8 +415,9 @@ export async function POST(request: Request) {
           orderId: order.id,
           customerName: customerName ?? "",
           customerPhone: customerPhone ?? "",
-          shippingAddress: JSON.stringify(effectiveShippingAddress),
+          shippingAddress: effectiveShippingAddress ? JSON.stringify(effectiveShippingAddress) : "",
           billingAddress: JSON.stringify(billingAddress),
+          fulfillmentMethod,
           orderNotes: orderNotes ? orderNotes.slice(0, 490) : "",
           itemCount: String(orderItemValues.length),
           itemSummary: orderItemValues

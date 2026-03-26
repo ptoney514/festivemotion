@@ -259,6 +259,7 @@ export async function getSuccessSummary(sessionId: string) {
       shippingAddress: fromDatabase.order.shippingAddress ?? null,
       billingAddress: fromDatabase.order.billingAddress ?? null,
       orderNotes: fromDatabase.order.orderNotes ?? null,
+      fulfillmentMethod: (fromDatabase.order.fulfillmentMethod as "shipping" | "pickup") ?? "shipping",
       amountTotalCents: fromDatabase.order.amountTotalCents,
       subtotalCents: fromDatabase.order.subtotalCents ?? null,
       shippingFeeCents: fromDatabase.order.shippingFeeCents ?? null,

@@ -222,6 +222,7 @@ export const orders = pgTable(
       country: string;
     }>(),
     orderNotes: text("order_notes"),
+    fulfillmentMethod: text("fulfillment_method").notNull().default("shipping"),
     subtotalCents: integer("subtotal_cents"),
     shippingFeeCents: integer("shipping_fee_cents"),
     taxAmountCents: integer("tax_amount_cents"),

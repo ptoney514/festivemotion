@@ -138,6 +138,7 @@ export async function POST(request: Request) {
           taxAmountCents: orderRecord.order.taxAmountCents ?? null,
           stripePaymentIntentId:
             typeof session.payment_intent === "string" ? session.payment_intent : null,
+          fulfillmentMethod: (orderRecord.order.fulfillmentMethod as "shipping" | "pickup") ?? "shipping",
         });
       } catch (err) {
         Sentry.captureException(err);
@@ -165,6 +166,7 @@ export async function POST(request: Request) {
             subtotalCents: orderRecord.order.subtotalCents ?? null,
             shippingFeeCents: orderRecord.order.shippingFeeCents ?? null,
             taxAmountCents: orderRecord.order.taxAmountCents ?? null,
+            fulfillmentMethod: (orderRecord.order.fulfillmentMethod as "shipping" | "pickup") ?? "shipping",
           });
         } catch (err) {
           Sentry.captureException(err);
