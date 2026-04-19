@@ -10,6 +10,19 @@ const commonSupportItems = [
   { title: "Support", subtitle: "Direct help from the FestiveMotion team" },
 ];
 
+const blackbeardGallery = [
+  {
+    type: "image" as const,
+    src: "/products/blackbeards-chest/blackbeards-chest-main.jpg",
+    alt: "Blackbeard's Chest animatronic chest open with the pirate reveal emerging.",
+  },
+  {
+    type: "image" as const,
+    src: "/products/blackbeards-chest/blackbeards-chest-skull.jpg",
+    alt: "Close-up of Blackbeard's glowing skull face under dramatic lighting.",
+  },
+];
+
 const commonRoutineDefaults = [
   "witches-witches-witches",
   "tiptoe-through-the-graveyard",
@@ -668,6 +681,118 @@ function createPumpkinTrioGroups(): CatalogOptionGroup[] {
 }
 
 export const catalogSeed: CatalogProduct[] = [
+  {
+    slug: "blackbeards-chest",
+    name: "Blackbeard's Chest",
+    shortDescription:
+      "A one-of-a-kind animatronic pirate chest with a slow lid rise, eerie audio, and a trapped Blackbeard reveal.",
+    description:
+      "Blackbeard's Chest is a flagship pirate-crate animatronic built to anchor a Halloween display with a full story moment. When triggered, the chest lid slowly rises with an eerie creak and Blackbeard emerges to tell the haunting tale of how he became trapped inside the cursed chest forever.",
+    basePriceCents: 399900,
+    imageUrl: "/products/blackbeards-chest/blackbeards-chest-main.jpg",
+    active: true,
+    metadata: {
+      category: "Flagship Animatronic",
+      gallery: blackbeardGallery,
+      homeFeaturedRank: 1,
+      homeHeroRank: 1,
+      heroCtaLabel: "View Blackbeard's Chest",
+      heroEyebrow: "New Flagship Product",
+      heroHighlights: [
+        "Animated chest lid and pirate reveal",
+        "Lighting, audio, and smartphone control",
+        "Built for dramatic centerpiece moments",
+      ],
+      heroImageUrl: "/products/blackbeards-chest/blackbeards-chest-main.jpg",
+      heroSummary:
+        "A fixed flagship pirate prop with a story-driven reveal, integrated lighting and audio, and just the operator add-ons you actually need.",
+      heroTagline: "A cursed pirate reveal built to stop a crowd cold.",
+      inTheBox: [
+        "Blackbeard's Chest animatronic",
+        "Pirate skeleton torso with hat",
+        "Optional eye patch accessory",
+        "Smartphone-accessible controller",
+        "2 DMX lights",
+        "50-watt stereo speakers",
+      ],
+      leadTime: "Flagship pirate centerpiece for premium haunt scenes and showroom demos",
+      note: "Fog integration is supported, but handled as a scene-planning detail rather than an on-page add-on in this first release.",
+      productsFlagshipRank: 1,
+      relatedProductSlugs: [
+        "skulltronix-skull",
+        "skulltronix-skullkin",
+        "skulltronix-trunk-or-treat-skull",
+      ],
+      shippingNote: "Shipping is coordinated with the FestiveMotion team after purchase.",
+      specs: [
+        "Animated chest lid with Blackbeard reveal sequence",
+        "Pirate skeleton torso with hat and optional eye patch",
+        "Smartphone-accessible controller for activation and show control",
+        "Includes 2 DMX lights and 50-watt stereo speakers",
+        "Fog integration compatible for added atmosphere",
+      ],
+      supportItems: commonSupportItems,
+      featureCards: [
+        {
+          eyebrow: "Story Moment",
+          title: "Slow-burn reveal from inside the crate",
+          description:
+            "The creaking lid and emerging pirate create a longer, more memorable scare beat than a simple pop-up prop.",
+        },
+        {
+          eyebrow: "Show Control",
+          title: "Lighting, audio, and smartphone access included",
+          description:
+            "The product ships with the core control stack already in the build, so it can demo cleanly or slot into a larger haunt setup.",
+        },
+        {
+          eyebrow: "Atmosphere",
+          title: "Built to carry a scene on its own",
+          description:
+            "The chest, pirate character, and optional fog support give the piece enough visual weight to headline a window, foyer, or feature room.",
+        },
+      ],
+    },
+    optionGroups: [
+      {
+        slug: "add-ons",
+        name: "Add-ons",
+        description: "Operator-focused upgrades for trigger control and scene integration.",
+        required: false,
+        selectionType: "multi",
+        sortOrder: 10,
+        metadata: {
+          helperText:
+            "Eye patch styling and fog compatibility stay in the product details. Only the priced control extras are selectable here.",
+          whyItMatters:
+            "These upgrades help the prop fit a haunt queue, supervised demo, or larger lighting-control setup without changing the base build.",
+        },
+        options: [
+          {
+            slug: "motion-sensor-pir",
+            label: "Motion Sensor",
+            priceDeltaCents: 3500,
+            sortOrder: 10,
+            description: "Trigger the chest automatically when guests approach.",
+          },
+          {
+            slug: "wireless-remote-trigger",
+            label: "Wireless Handheld Remote Trigger",
+            priceDeltaCents: 3500,
+            sortOrder: 20,
+            description: "Manual handheld activation for timed scare moments.",
+          },
+          {
+            slug: "three-channel-dmx-relay-controller",
+            label: "3 Channel DMX Relay Controller",
+            priceDeltaCents: 7500,
+            sortOrder: 30,
+            description: "Tie the reveal into a wider DMX-controlled scene.",
+          },
+        ],
+      },
+    ],
+  },
   createSkullTierProduct({
     slug: "skulltronix-skull-bare-bones",
     name: "SkullTronix Skull Bare Bones",

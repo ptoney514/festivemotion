@@ -1,11 +1,13 @@
-import "dotenv/config";
 import { and, eq, notInArray } from "drizzle-orm";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { catalogSeed } from "../lib/catalog-seed";
 import * as schema from "../lib/schema";
+import { loadProjectEnv } from "./load-project-env";
 
 const { optionGroups, options, products } = schema;
+
+loadProjectEnv();
 
 async function main() {
   const url = process.env.DATABASE_URL;

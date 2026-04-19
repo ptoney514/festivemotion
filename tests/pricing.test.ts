@@ -286,4 +286,64 @@ describe("calculatePrice", () => {
       }
     });
   });
+
+  describe("Blackbeard's Chest", () => {
+    it("prices the base product at $3,999 with no required selections", () => {
+      const product = getProduct("blackbeards-chest");
+      const priced = calculatePrice(product, buildDefaultSelections(product));
+
+      expect(priced.valid).toBe(true);
+      expect(priced.totalCents).toBe(399900);
+      expect(priced.lineItems).toEqual([
+        {
+          label: "Blackbeard's Chest",
+          amountCents: 399900,
+        },
+      ]);
+      expect(priced.selectedOptions).toEqual([]);
+    });
+
+    it("adds the priced add-ons without changing descriptive product details", () => {
+      const product = getProduct("blackbeards-chest");
+      const priced = calculatePrice(product, {
+        "add-ons": [
+          "motion-sensor-pir",
+          "wireless-remote-trigger",
+          "three-channel-dmx-relay-controller",
+        ],
+      });
+
+      expect(priced.valid).toBe(true);
+      expect(priced.totalCents).toBe(414400);
+      expect(priced.lineItems).toEqual([
+        {
+          label: "Blackbeard's Chest",
+          amountCents: 399900,
+        },
+        {
+          label: "Motion Sensor",
+          amountCents: 3500,
+        },
+        {
+          label: "Wireless Handheld Remote Trigger",
+          amountCents: 3500,
+        },
+        {
+          label: "3 Channel DMX Relay Controller",
+          amountCents: 7500,
+        },
+      ]);
+      expect(priced.selectedOptions).toEqual([
+        {
+          groupName: "Add-ons",
+          groupSlug: "add-ons",
+          labels: [
+            "Motion Sensor",
+            "Wireless Handheld Remote Trigger",
+            "3 Channel DMX Relay Controller",
+          ],
+        },
+      ]);
+    });
+  });
 });
