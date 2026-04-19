@@ -16,7 +16,8 @@
     "test:e2e": "npx playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:seed:additive": "tsx scripts/seed-additive.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
