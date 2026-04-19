@@ -5,6 +5,7 @@ import { HomeProductTile } from "@/components/home-product-tile";
 import { PerformancesShowcase } from "@/components/performances-showcase";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { getHomepageCatalogView } from "@/lib/catalog-editorial";
 import { formatCurrency } from "@/lib/format";
 import { getCatalogProducts } from "@/lib/catalog";
 
@@ -12,17 +13,8 @@ export const revalidate = 3600;
 
 export default async function HomePage() {
   const products = await getCatalogProducts();
-  const skullModels = products
-    .filter((product) => product.metadata.family === "skulltronix-skull-lineup")
-    .sort((left, right) => (left.metadata.tierRank ?? 99) - (right.metadata.tierRank ?? 99));
-  const specialtyProducts = products.filter(
-    (product) => product.metadata.family !== "skulltronix-skull-lineup",
-  );
-  const showcaseProducts = [...skullModels, ...specialtyProducts];
-
-  const heroProduct =
-    products.find((product) => product.slug === "skulltronix-skull") ??
-    showcaseProducts[0];
+  const { featuredProduct, heroProduct, remainingProducts, showcaseProducts } =
+    getHomepageCatalogView(products);
 
   const heroImage =
     heroProduct?.metadata.heroImageUrl ??
@@ -31,8 +23,6 @@ export default async function HomePage() {
   const heroTagline = heroProduct?.metadata.heroTagline ?? "Full-motion. Show-ready. Built to perform.";
   const heroHref = `/products/${heroProduct?.slug ?? "skulltronix-skull"}`;
   const heroActionLabel = heroProduct?.metadata.heroCtaLabel ?? "Build Your Skull Pro";
-
-  const [featuredProduct, ...remainingProducts] = showcaseProducts;
 
   return (
     <>

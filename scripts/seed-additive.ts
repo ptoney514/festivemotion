@@ -1,6 +1,6 @@
 import { seedCatalog } from "./catalog-seeding";
 
-seedCatalog("full-sync").catch((error) => {
+seedCatalog("additive").catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

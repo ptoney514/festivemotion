@@ -43,6 +43,8 @@ export type ProductMetadata = {
   category?: string;
   family?: string;
   gallery: CatalogMedia[];
+  homeFeaturedRank?: number;
+  homeHeroRank?: number;
   heroCtaLabel?: string;
   heroEyebrow?: string;
   heroHighlights?: string[];
@@ -53,6 +55,7 @@ export type ProductMetadata = {
   leadTime?: string;
   note?: string;
   pricing?: ProductPricingMetadata;
+  productsFlagshipRank?: number;
   relatedProductSlugs?: string[];
   shippingNote?: string;
   specs?: string[];

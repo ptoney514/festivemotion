@@ -1,0 +1,26 @@
+name: Seed Production Catalog Additively
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - lib/catalog-seed.ts
+      - scripts/catalog-seeding.ts
+      - scripts/seed-additive.ts
+      - scripts/load-project-env.ts
+      - package.json
+      - .github/workflows/seed-prod-additive.yml
+
+jobs:
+  seed-production-additive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run db:seed:additive
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
